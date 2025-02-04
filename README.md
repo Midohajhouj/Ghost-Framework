@@ -27,25 +27,18 @@ Ghost is super easy to set up! Just follow these steps, and you'll be controllin
 First, grab your very own copy of Ghost Framework:
 
 ```bash
-git clone https://github.com/Midohajhouj/Ghost.git
-cd Ghost
+git clone https://github.com/Midohajhouj/Ghost-Framework.git
+cd Ghost-Framework
 
 
 2. Make the script executable:
 
 Next, make the Ghost Framework script ready to run:
 
-chmod +x Ghost
+chmod +x *
 
-3. Create an alias (optional, but cool):
+./install.sh
 
-Want to call the tool from anywhere? Let's make it even easier with an alias! Add the following to your .bashrc or .zshrc file:
-
-alias ghost='python3 $(pwd)/ghost_framework.py'
-
-Then reload your terminal:
-
-source ~/.bashrc  # or source ~/.zshrc for zsh users
 
 4. Run Ghost:
 
