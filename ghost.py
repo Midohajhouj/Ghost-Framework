@@ -65,14 +65,6 @@ def run_command(command):
         logging.error(f"Error executing command: {e.stderr}")
         return f"Error executing command: {e.stderr}"
 
-def list_device_info():
-    """Display detailed information about the connected device."""
-    output = run_command("adb shell getprop ro.product.model")
-    model = output.strip()
-    os_version = run_command("adb shell getprop ro.build.version.release").strip()
-    logging.info(f"Device model: {model}, Android version: {os_version}")
-    return model, os_version
-
 def show_connected_devices():
     """Show all connected devices."""
     output = run_command("adb devices")
@@ -107,7 +99,7 @@ def access_shell():
         logging.error(f"Error accessing shell: {e}")
 
 def install_apk():
-    """Enhanced APK installation with better error checking."""
+    """Enhanced APK installation with better error checking and multiple app executions."""
     apk_path = input(color_text("Enter path to APK: ", 'blue'))
     if not os.path.exists(apk_path):
         logging.error("APK file not found!")
@@ -117,6 +109,23 @@ def install_apk():
     output = run_command(f"adb install {apk_path}")
     if "success" in output.lower():
         logging.info(f"APK installed successfully: {apk_path}")
+        
+        # Extract the package name from the APK
+        package_name = run_command(f"aapt dump badging {apk_path} | grep package:\ name").split("name='")[1].split("'")[0]
+        logging.info(f"Package name extracted: {package_name}")
+
+        # Prompt user for the number of times to launch the app
+        try:
+            times = int(input(color_text("How many times do you want to launch the app? ", 'blue')))
+            if times <= 0:
+                raise ValueError("Number of times must be positive.")
+            for i in range(times):
+                logging.info(f"Launching app {i + 1}/{times}...")
+                run_command(f"adb shell am start -n {package_name}/.MainActivity")  # Adjust MainActivity to actual activity name if needed
+                logging.info(f"App launched {i + 1} time(s)")
+        except ValueError as e:
+            logging.error(f"Invalid input for launch count: {e}")
+        
     else:
         logging.error(f"Failed to install APK: {output}")
 
