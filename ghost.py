@@ -4,9 +4,14 @@ import os
 import sys
 import subprocess
 import logging
+from datetime import datetime
 
-# Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Set up logging with more detail (timestamp, log level, message)
+logging.basicConfig(
+    level=logging.DEBUG,  # Use DEBUG level for more detailed logs
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[logging.FileHandler("ghost_framework.log"), logging.StreamHandler()]
+)
 
 # Color definitions for terminal outputs
 COLORS = {
@@ -51,13 +56,22 @@ def show_menu():
     print(menu)
 
 def run_command(command):
-    """Execute a shell command and return its output."""
+    """Enhanced error handling and return command output."""
     try:
         result = subprocess.run(command, shell=True, text=True, capture_output=True, check=True)
+        logging.debug(f"Command executed: {command}")
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         logging.error(f"Error executing command: {e.stderr}")
         return f"Error executing command: {e.stderr}"
+
+def list_device_info():
+    """Display detailed information about the connected device."""
+    output = run_command("adb shell getprop ro.product.model")
+    model = output.strip()
+    os_version = run_command("adb shell getprop ro.build.version.release").strip()
+    logging.info(f"Device model: {model}, Android version: {os_version}")
+    return model, os_version
 
 def show_connected_devices():
     """Show all connected devices."""
@@ -93,22 +107,26 @@ def access_shell():
         logging.error(f"Error accessing shell: {e}")
 
 def install_apk():
-    """Install an APK on a connected device."""
+    """Enhanced APK installation with better error checking."""
     apk_path = input(color_text("Enter path to APK: ", 'blue'))
     if not os.path.exists(apk_path):
         logging.error("APK file not found!")
         return
+    
+    logging.info(f"Installing APK: {apk_path}")
     output = run_command(f"adb install {apk_path}")
     if "success" in output.lower():
-        logging.info(output)
+        logging.info(f"APK installed successfully: {apk_path}")
     else:
-        logging.error(output)
+        logging.error(f"Failed to install APK: {output}")
 
 def take_screenshot():
-    """Take a screenshot of the connected device's screen."""
-    output = run_command("adb exec-out screencap -p > screenshot.png")
-    if os.path.exists("screenshot.png"):
-        logging.info("Screenshot saved as screenshot.png")
+    """Take screenshot with timestamp-based file naming."""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    screenshot_file = f"screenshot_{timestamp}.png"
+    output = run_command(f"adb exec-out screencap -p > {screenshot_file}")
+    if os.path.exists(screenshot_file):
+        logging.info(f"Screenshot saved as {screenshot_file}")
     else:
         logging.error("Failed to take screenshot.")
 
