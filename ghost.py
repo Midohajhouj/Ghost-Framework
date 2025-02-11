@@ -34,8 +34,8 @@ def clear_screen():
 def show_banner():
     """Display the Ghost Framework banner."""
     banner = f"""
-{color_text('Ghost Framework', 'red')} - {color_text('Remote ADB Control Tool', 'yellow')}
-    Coded by {color_text('Triple 7', 'green')}
+{color_text('Ghost Framework', 'blue')} - {color_text('Remote ADB Control Tool', 'yellow')}
+    Coded by {color_text('Triple7', 'red')}
 """
     logging.info(banner)
 
