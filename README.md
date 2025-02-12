@@ -87,6 +87,4 @@ Ghost Framework is licensed under the **MIT License**. Feel free to use, modify,
 Have questions, suggestions, or issues? Open an issue in the repository. Your feedback helps us improve and refine the tool.
 
 ---
-## Coded by MIDO
-
-**Let the Ghost guide you! 👻**
+## *Coded by MIDO777*
