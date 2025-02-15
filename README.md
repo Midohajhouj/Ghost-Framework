@@ -88,6 +88,6 @@ Have questions, suggestions, or issues? Open an issue in the repository. Your fe
 
 ---
 
-*<p align="center"> Enhanced  by <a href="https://github.com/Midohajhouj">MIDO777</a> </p>*
+#### *<p align="center"> Coded by <a href="https://github.com/Midohajhouj">MIDO777</a> </p>*
 
 
