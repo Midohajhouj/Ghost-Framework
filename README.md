@@ -1,93 +1,99 @@
+# Ghost Framework
 
-## 🕵️‍♂️ Ghost Framework: Remote ADB Control Tool 👻
-
-**Ghost Framework** is a powerful Python-based toolkit for remote Android device management via ADB (Android Debug Bridge). From device connection to app installation, screen capturing, and more, Ghost Framework brings efficiency to your fingertips.
-
----
-
-## 🧰 Features  
-
-### 🚀 Core Functionalities:
-- **📱 Show Connected Devices**: Quickly list all connected devices.  
-- **🔗 Connect to Devices**: Establish connections using an IP address.  
-- **❌ Disconnect Devices**: Disconnect from all devices in one step.  
-- **💻 Access Device Shell**: Take full control of the device shell.
-
-### 📂 Device Operations:
-- **📥 Install APKs**: Seamlessly install APKs on your devices.  
-- **📸 Take Screenshots**: Capture device screens with ease.  
-- **🎥 Record Screens**: Record your screen activities.  
-- **📦 List Installed Apps**: Get a detailed list of all installed apps.  
-- **🔄 Reboot Devices**: Restart devices remotely.
+Ghost Framework is a powerful **Remote ADB Control Tool** designed to help users interact with Android devices efficiently. The framework allows you to perform a variety of tasks such as connecting to devices, managing apps, taking screenshots, recording the screen, and much more — all via an intuitive command-line interface.
 
 ---
 
-## ⚙️ Installation  
+## 🎯 Features
+- 📱 **Device Management**: Connect, disconnect, and interact with Android devices over ADB.
+- 🛠 **Advanced Tools**: Install/uninstall apps, backup/restore data, mirror screens, and more.
+- 🌈 **Interactive Menu**: User-friendly interface with colorful terminal outputs.
+- 🔍 **Detailed Logs**: Debugging made easy with timestamped logs.
 
-Follow these steps to get started with Ghost Framework:
+---
 
-### Step 1: Clone the Repository  
+## 🚀 Getting Started
+
+### Prerequisites
+1. **Python 3.6+** installed on your system.
+2. [**ADB (Android Debug Bridge)**](https://developer.android.com/studio/command-line/adb) installed and configured in your system's PATH.
+3. **Required Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+---
+
+## 🔧 Setup & Usage
+
+### Clone the Repository
 ```bash
-git clone https://github.com/Midohajhouj/Ghost-Framework.git
-cd Ghost-Framework
+git clone https://github.com/your-username/ghost-framework.git
+cd ghost-framework
 ```
 
-### Step 2: Make the Script Executable  
+### Run the Tool
 ```bash
-chmod +x *
-./install.sh
-```
-
-### Step 3: Run Ghost Framework  
-```bash
-ghost
+python3 ghost_framework.py
 ```
 
 ---
 
-## 📖 Usage  
+## 📜 Main Menu Options
 
-Upon starting Ghost Framework, you’ll encounter an intuitive menu. Select an option to perform actions, such as:  
-
-1. **Show connected devices**  
-2. **Connect to a device**  
-3. **Disconnect from a device**  
-4. **Access device shell**  
-5. **Install an APK**  
-6. **Take a screenshot**  
-7. **Record the screen**  
-8. **List installed apps**  
-9. **Reboot the device**  
-0. **Exit**
-
----
-
-## 🛠️ Troubleshooting  
-
-- **ADB not found**: Ensure ADB is installed and included in your system's PATH.  
-- **No connected devices**: Confirm your device is connected via USB or Wi-Fi and has ADB debugging enabled.  
-- **Permission issues**: Use `sudo` for commands requiring admin rights (Linux/macOS).
-
----
-
-## 📝 Logging  
-
-Ghost Framework logs every action to provide clear insights into execution success or failure. Logs are displayed directly in the terminal for quick diagnostics.
+| **Option** | **Action**                   |
+|------------|------------------------------|
+| 1          | Show Connected Devices       |
+| 2          | Connect to a Device          |
+| 3          | Disconnect from a Device     |
+| 4          | Access Device Shell          |
+| 5          | Install APK                  |
+| 6          | Take Screenshot              |
+| 7          | Record Screen                |
+| 8          | List Installed Apps          |
+| 9          | Reboot Device                |
+| 10         | Backup Device Data           |
+| 11         | Restore Device Data          |
+| 12         | Push File                    |
+| 13         | Pull File                    |
+| 14         | Uninstall App                |
+| 15         | Show Device Info             |
+| 16         | Mirror Device Screen         |
+| 17         | Execute Custom ADB Command   |
+| 0          | Exit                         |
 
 ---
 
-## 📜 License  
+## 🗼 Terminal Preview
 
-Ghost Framework is licensed under the **MIT License**. Feel free to use, modify, and contribute to the project.
+```plaintext
+Ghost Framework - Remote ADB Control Tool
+Coded by MIDO777
+
+[1] Show Connected Devices
+[2] Connect to a Device
+...
+[0] Exit
+```
 
 ---
 
-## 💬 Feedback & Contributions  
+## 💂 Logs
 
-Have questions, suggestions, or issues? Open an issue in the repository. Your feedback helps us improve and refine the tool.
+All logs are saved in `ghost_framework.log` for easy debugging and analysis.
 
 ---
 
-#### *<p align="center"> Coded by <a href="https://github.com/Midohajhouj">MIDO777</a> </p>*
+## 🤝 Contribution
+Contributions are welcome! Feel free to submit a pull request or open an issue for suggestions.
 
+---
+
+## 📄 License
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👨‍💻 Author
+Coded with ❤️ by **MIDO777**.
 
