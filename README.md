@@ -90,7 +90,5 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 ---
 
-## 👨‍💻 Author
-
 #### *<p align="center"> Coded by <a href="https://github.com/Midohajhouj">MIDO777</a> </p>*
 
