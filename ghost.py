@@ -51,6 +51,14 @@ def show_menu():
 {color_text('[7]', 'green')} Record Screen
 {color_text('[8]', 'green')} List Installed Apps
 {color_text('[9]', 'green')} Reboot Device
+{color_text('[10]', 'green')} Backup Device
+{color_text('[11]', 'green')} Restore Device
+{color_text('[12]', 'green')} Push File
+{color_text('[13]', 'green')} Pull File
+{color_text('[14]', 'green')} Uninstall App
+{color_text('[15]', 'green')} Show Device Info
+{color_text('[16]', 'green')} Mirror Screen
+{color_text('[17]', 'green')} Execute Custom Command
 {color_text('[0]', 'red')} Exit
 """
     print(menu)
@@ -173,6 +181,76 @@ def reboot_device():
     else:
         logging.info("Device rebooted.")
 
+def backup_device():
+    """Backup device data."""
+    backup_file = input(color_text("Enter backup file name: ", 'blue'))
+    output = run_command(f"adb backup -all -f {backup_file}.ab")
+    if "error" in output.lower():
+        logging.error(output)
+    else:
+        logging.info(f"Backup saved as {backup_file}.ab")
+
+def restore_device():
+    """Restore device data."""
+    backup_file = input(color_text("Enter backup file name: ", 'blue'))
+    output = run_command(f"adb restore {backup_file}.ab")
+    if "error" in output.lower():
+        logging.error(output)
+    else:
+        logging.info(f"Restored from {backup_file}.ab")
+
+def push_file():
+    """Push a file to the device."""
+    local_path = input(color_text("Enter local file path: ", 'blue'))
+    remote_path = input(color_text("Enter remote file path: ", 'blue'))
+    output = run_command(f"adb push {local_path} {remote_path}")
+    if "error" in output.lower():
+        logging.error(output)
+    else:
+        logging.info(f"File pushed to {remote_path}")
+
+def pull_file():
+    """Pull a file from the device."""
+    remote_path = input(color_text("Enter remote file path: ", 'blue'))
+    local_path = input(color_text("Enter local file path: ", 'blue'))
+    output = run_command(f"adb pull {remote_path} {local_path}")
+    if "error" in output.lower():
+        logging.error(output)
+    else:
+        logging.info(f"File pulled to {local_path}")
+
+def uninstall_app():
+    """Uninstall an app from the device."""
+    package_name = input(color_text("Enter package name to uninstall: ", 'blue'))
+    output = run_command(f"adb uninstall {package_name}")
+    if "success" in output.lower():
+        logging.info(f"App {package_name} uninstalled successfully.")
+    else:
+        logging.error(f"Failed to uninstall app: {output}")
+
+def show_device_info():
+    """Show detailed device information."""
+    model = run_command("adb shell getprop ro.product.model")
+    android_version = run_command("adb shell getprop ro.build.version.release")
+    battery_level = run_command("adb shell dumpsys battery | grep level")
+    logging.info(f"Model: {model}")
+    logging.info(f"Android Version: {android_version}")
+    logging.info(f"Battery Level: {battery_level}")
+
+def mirror_screen():
+    """Mirror the device screen to the computer."""
+    output = run_command("adb exec-out screenrecord --output-format=h264 - | ffplay -")
+    if "error" in output.lower():
+        logging.error(output)
+    else:
+        logging.info("Screen mirroring started.")
+
+def execute_custom_command():
+    """Execute a custom ADB command."""
+    command = input(color_text("Enter custom ADB command: ", 'blue'))
+    output = run_command(command)
+    logging.info(output)
+
 def main():
     """Main function to display menu and handle user input."""
     try:
@@ -201,6 +279,22 @@ def main():
                 list_installed_apps()
             elif choice == '9':
                 reboot_device()
+            elif choice == '10':
+                backup_device()
+            elif choice == '11':
+                restore_device()
+            elif choice == '12':
+                push_file()
+            elif choice == '13':
+                pull_file()
+            elif choice == '14':
+                uninstall_app()
+            elif choice == '15':
+                show_device_info()
+            elif choice == '16':
+                mirror_screen()
+            elif choice == '17':
+                execute_custom_command()
             elif choice == '0':
                 logging.info("Exiting Ghost Framework. Goodbye!")
                 break
