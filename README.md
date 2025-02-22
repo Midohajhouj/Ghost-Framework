@@ -26,11 +26,11 @@ chmod +x *
 
 ## Debian based distro
 download the release
-dpkg -i 
+dpkg -i ghost-framework.deb
 
 ### Run the Tool
 ```bash
-python3 ghost_framework.py
+ghost
 ```
 
 ---
