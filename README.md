@@ -7,22 +7,12 @@ Ghost Framework is a powerful **Remote ADB Control Tool** designed to help users
 ## 🎯 Features
 - 📱 **Device Management**: Connect, disconnect, and interact with Android devices over ADB.
 - 🛠 **Advanced Tools**: Install/uninstall apps, backup/restore data, mirror screens, and more.
-- 🌈 **Interactive Menu**: User-friendly interface with colorful terminal outputs.
+- 📜 **Interactive Menu**: User-friendly interface with colorful terminal outputs.
 - 🔍 **Detailed Logs**: Debugging made easy with timestamped logs.
 
 ---
 
 ## 🚀 Getting Started
-
-### Prerequisites
-1. **Python 3.6+** installed on your system.
-2. [**ADB (Android Debug Bridge)**](https://developer.android.com/studio/command-line/adb) installed and configured in your system's PATH.
-3. **Required Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
----
 
 ## 🔧 Setup & Usage
 
@@ -30,7 +20,13 @@ Ghost Framework is a powerful **Remote ADB Control Tool** designed to help users
 ```bash
 git clone https://github.com/your-username/ghost-framework.git
 cd ghost-framework
+chmod +x *
+./install.sh
 ```
+
+## Debian based distro
+download the release
+dpkg -i 
 
 ### Run the Tool
 ```bash
