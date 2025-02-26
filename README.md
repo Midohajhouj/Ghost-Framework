@@ -1,4 +1,4 @@
-# Ghost Framework
+# 👻 Ghost Framework
 
 Ghost Framework is a powerful **Remote ADB Control Tool** designed to help users interact with Android devices efficiently. The framework allows you to perform a variety of tasks such as connecting to devices, managing apps, taking screenshots, recording the screen, and much more — all via an intuitive command-line interface.
 
