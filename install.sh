@@ -23,21 +23,6 @@ header() {
     echo
 }
 
-# Function to display a progress bar
-progress_bar() {
-    local duration=${1}
-    local bar_length=50
-    local sleep_interval=$(echo "scale=2; $duration/$bar_length" | bc)
-    for ((i=0; i<=bar_length; i++)); do
-        printf "${GREEN}["
-        for ((j=0; j<i; j++)); do printf "="; done
-        for ((j=i; j<bar_length; j++)); do printf " "; done
-        printf "] ${i}%%\r"
-        sleep $sleep_interval
-    done
-    printf "\n"
-}
-
 # Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
