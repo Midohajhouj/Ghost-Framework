@@ -35,7 +35,7 @@ def show_banner():
     """Display the Ghost Framework banner."""
     banner = f"""
 {color_text('Ghost Framework', 'blue')} - {color_text('Remote ADB Control Tool', 'yellow')}
-    Coded by {color_text('MIDO777', 'red')}
+    Coded by {color_text('LIONBAD', 'red')}
 """
     logging.info(banner)
 
