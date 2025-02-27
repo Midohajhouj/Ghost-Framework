@@ -11,14 +11,9 @@ NC='\033[0m' # No Color
 header() {
     clear
     echo -e "${BLUE}"
-    echo "   ____  _    _  ____  _____  _   _  ____  "
-    echo "  / ___|| |  | ||  _ \|_   _|| | | ||  _ \ "
-    echo " | |  _ | |  | || |_) | | |  | |_| || |_) |"
-    echo " | |_| || |__| ||  __/  | |  |  _  ||  __/ "
-    echo "  \____| \____/ |_|     |_|  |_| |_||_|    "
     echo -e "${NC}"
     echo -e "${YELLOW}Ghost Framework - Remote ADB Control Tool${NC}"
-    echo -e "${YELLOW}Coded by MIDO777${NC}"
+    echo -e "${YELLOW}Coded by LIONBAD${NC}"
     echo -e "${BLUE}===========================================${NC}"
     echo
 }
