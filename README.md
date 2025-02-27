@@ -90,5 +90,6 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 ---
 
-#### *<p align="center"> Coded by <a href="https://github.com/Midohajhouj">MIDO777</a> </p>*
+#### *<p align="center"> Walkthroughs by <a href="https://github.com/Midohajhouj">LIONBAD</a> </p>*
+
 
