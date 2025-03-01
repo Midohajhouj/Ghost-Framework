@@ -63,6 +63,10 @@ def show_menu():
 {color_text('[17]', 'green')} Mirror Screen
 {color_text('[18]', 'green')} Execute Custom Command
 {color_text('[19]', 'green')} Interactive Shell
+{color_text('[20]', 'green')} List Files on Device
+{color_text('[21]', 'green')} Delete File on Device
+{color_text('[22]', 'green')} Check Battery Health
+{color_text('[23]', 'green')} Execute Script
 {color_text('[0]', 'red')} Exit
 """
     print(menu)
@@ -386,6 +390,60 @@ def interactive_shell():
         output = adb_command(device, f"shell {command}")
         print(color_text(output, 'yellow'))
 
+def list_files_on_device():
+    """List files in a specific directory on the device."""
+    device = select_device()
+    if not device:
+        return
+    remote_path = input(color_text("Enter remote directory path: ", 'blue'))
+    output = adb_command(device, f"shell ls {remote_path}")
+    if "error" in output.lower():
+        logging.error(output)
+    else:
+        print(color_text(output, 'yellow'))
+
+def delete_file_on_device():
+    """Delete a file or directory on the device."""
+    device = select_device()
+    if not device:
+        return
+    remote_path = input(color_text("Enter remote file/directory path: ", 'blue'))
+    output = adb_command(device, f"shell rm -rf {remote_path}")
+    if "error" in output.lower():
+        logging.error(output)
+    else:
+        logging.info(f"Deleted {remote_path}")
+
+def check_battery_health():
+    """Check the battery health and charging status."""
+    device = select_device()
+    if not device:
+        return
+    battery_health = adb_command(device, "shell dumpsys battery | grep health")
+    charging_status = adb_command(device, "shell dumpsys battery | grep status")
+    logging.info(f"Battery Health: {battery_health}")
+    logging.info(f"Charging Status: {charging_status}")
+
+def execute_script():
+    """Execute a series of ADB commands from a script file."""
+    device = select_device()
+    if not device:
+        return
+    script_path = input(color_text("Enter path to script file: ", 'blue'))
+    if not os.path.exists(script_path):
+        logging.error("Script file not found!")
+        return
+    
+    with open(script_path, 'r') as file:
+        commands = file.readlines()
+    
+    for command in commands:
+        command = command.strip()
+        if command:
+            logging.info(f"Executing command: {command}")
+            output = adb_command(device, command)
+            print(color_text(output, 'yellow'))
+
 def main():
     """Main function to display menu and handle user input."""
     try:
@@ -434,6 +492,14 @@ def main():
                 execute_custom_command()
             elif choice == '19':
                 interactive_shell()
+            elif choice == '20':
+                list_files_on_device()
+            elif choice == '21':
+                delete_file_on_device()
+            elif choice == '22':
+                check_battery_health()
+            elif choice == '23':
+                execute_script()
             elif choice == '0':
                 logging.info("Exiting Ghost Framework. Goodbye!")
                 break
