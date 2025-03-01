@@ -4,6 +4,8 @@ import os
 import sys
 import subprocess
 import logging
+import re
+import asyncio
 from datetime import datetime
 
 # Set up logging with more detail (timestamp, log level, message)
@@ -47,24 +49,42 @@ def show_menu():
 {color_text('[3]', 'green')} Disconnect from a Device
 {color_text('[4]', 'green')} Access Device Shell
 {color_text('[5]', 'green')} Install APK
-{color_text('[6]', 'green')} Take Screenshot
-{color_text('[7]', 'green')} Record Screen
-{color_text('[8]', 'green')} List Installed Apps
-{color_text('[9]', 'green')} Reboot Device
-{color_text('[10]', 'green')} Backup Device
-{color_text('[11]', 'green')} Restore Device
-{color_text('[12]', 'green')} Push File
-{color_text('[13]', 'green')} Pull File
-{color_text('[14]', 'green')} Uninstall App
-{color_text('[15]', 'green')} Show Device Info
-{color_text('[16]', 'green')} Mirror Screen
-{color_text('[17]', 'green')} Execute Custom Command
+{color_text('[6]', 'green')} Install Multiple APKs
+{color_text('[7]', 'green')} Take Screenshot
+{color_text('[8]', 'green')} Record Screen
+{color_text('[9]', 'green')} List Installed Apps
+{color_text('[10]', 'green')} Reboot Device
+{color_text('[11]', 'green')} Backup Device
+{color_text('[12]', 'green')} Restore Device
+{color_text('[13]', 'green')} Push File
+{color_text('[14]', 'green')} Pull File
+{color_text('[15]', 'green')} Uninstall App
+{color_text('[16]', 'green')} Show Device Info
+{color_text('[17]', 'green')} Mirror Screen
+{color_text('[18]', 'green')} Execute Custom Command
+{color_text('[19]', 'green')} Interactive Shell
 {color_text('[0]', 'red')} Exit
 """
     print(menu)
 
+async def run_command_async(command):
+    """Run a command asynchronously and return the output."""
+    process = await asyncio.create_subprocess_shell(
+        command,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+    stdout, stderr = await process.communicate()
+    
+    if process.returncode != 0:
+        logging.error(f"Error executing command: {stderr.decode().strip()}")
+        return f"Error executing command: {stderr.decode().strip()}"
+    
+    logging.debug(f"Command executed: {command}")
+    return stdout.decode().strip()
+
 def run_command(command):
-    """Enhanced error handling and return command output."""
+    """Run a command synchronously and return the output."""
     try:
         result = subprocess.run(command, shell=True, text=True, capture_output=True, check=True)
         logging.debug(f"Command executed: {command}")
@@ -72,6 +92,38 @@ def run_command(command):
     except subprocess.CalledProcessError as e:
         logging.error(f"Error executing command: {e.stderr}")
         return f"Error executing command: {e.stderr}"
+
+def validate_ip(ip):
+    """Validate an IP address."""
+    pattern = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+    return pattern.match(ip) is not None
+
+def select_device():
+    """Allow the user to select a specific device if multiple devices are connected."""
+    devices_output = run_command("adb devices")
+    devices = [line.split('\t')[0] for line in devices_output.splitlines()[1:] if line.endswith('\tdevice')]
+    
+    if not devices:
+        logging.error("No devices connected.")
+        return None
+    elif len(devices) == 1:
+        return devices[0]
+    
+    print(color_text("Connected devices:", 'yellow'))
+    for i, device in enumerate(devices):
+        print(f"{color_text(f'[{i + 1}]', 'green')} {device}")
+    
+    choice = input(color_text("Select a device: ", 'blue'))
+    try:
+        choice = int(choice) - 1
+        if 0 <= choice < len(devices):
+            return devices[choice]
+        else:
+            logging.error("Invalid selection.")
+            return None
+    except ValueError:
+        logging.error("Invalid input.")
+        return None
 
 def show_connected_devices():
     """Show all connected devices."""
@@ -84,6 +136,9 @@ def show_connected_devices():
 def connect_device():
     """Connect to a device using its IP address."""
     ip = input(color_text("Enter device IP: ", 'blue'))
+    if not validate_ip(ip):
+        logging.error("Invalid IP address.")
+        return
     output = run_command(f"adb connect {ip}")
     if "connected" in output.lower():
         logging.info(output)
@@ -100,48 +155,71 @@ def disconnect_device():
 
 def access_shell():
     """Access the shell of a connected device."""
-    print(color_text("Entering ADB shell...", 'blue'))
+    device = select_device()
+    if not device:
+        return
+    print(color_text(f"Entering ADB shell for device {device}...", 'blue'))
     try:
-        subprocess.run("adb shell", shell=True, check=True)
+        subprocess.run(f"adb -s {device} shell", shell=True, check=True)
     except subprocess.CalledProcessError as e:
         logging.error(f"Error accessing shell: {e}")
 
+def adb_command(device, command):
+    """Execute an ADB command on the specified device."""
+    try:
+        result = subprocess.run(f"adb -s {device} {command}", shell=True, text=True, capture_output=True, check=True)
+        logging.debug(f"Command executed: {command}")
+        return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error executing command: {e.stderr}")
+        return f"Error executing command: {e.stderr}"
+
 def install_apk():
-    """Enhanced APK installation with better error checking and multiple app executions."""
+    """Install a single APK."""
+    device = select_device()
+    if not device:
+        return
     apk_path = input(color_text("Enter path to APK: ", 'blue'))
     if not os.path.exists(apk_path):
         logging.error("APK file not found!")
         return
     
-    logging.info(f"Installing APK: {apk_path}")
-    output = run_command(f"adb install {apk_path}")
-    if "success" in output.lower():
-        logging.info(f"APK installed successfully: {apk_path}")
-        
-        # Extract the package name from the APK
-        package_name = run_command(f"aapt dump badging {apk_path} | grep package:\ name").split("name='")[1].split("'")[0]
-        logging.info(f"Package name extracted: {package_name}")
+    try:
+        logging.info(f"Installing APK: {apk_path}")
+        output = adb_command(device, f"install {apk_path}")
+        if "success" in output.lower():
+            logging.info(f"APK installed successfully: {apk_path}")
+        else:
+            logging.error(f"Failed to install APK: {output}")
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
 
-        # Prompt user for the number of times to launch the app
-        try:
-            times = int(input(color_text("How many times do you want to launch the app? ", 'blue')))
-            if times <= 0:
-                raise ValueError("Number of times must be positive.")
-            for i in range(times):
-                logging.info(f"Launching app {i + 1}/{times}...")
-                run_command(f"adb shell am start -n {package_name}/.MainActivity")  # Adjust MainActivity to actual activity name if needed
-                logging.info(f"App launched {i + 1} time(s)")
-        except ValueError as e:
-            logging.error(f"Invalid input for launch count: {e}")
-        
-    else:
-        logging.error(f"Failed to install APK: {output}")
+def install_multiple_apks():
+    """Install multiple APKs in batch."""
+    device = select_device()
+    if not device:
+        return
+    apk_paths = input(color_text("Enter paths to APKs (comma-separated): ", 'blue')).split(',')
+    for apk_path in apk_paths:
+        apk_path = apk_path.strip()
+        if not os.path.exists(apk_path):
+            logging.error(f"APK file not found: {apk_path}")
+            continue
+        logging.info(f"Installing APK: {apk_path}")
+        output = adb_command(device, f"install {apk_path}")
+        if "success" in output.lower():
+            logging.info(f"APK installed successfully: {apk_path}")
+        else:
+            logging.error(f"Failed to install APK: {output}")
 
 def take_screenshot():
     """Take screenshot with timestamp-based file naming."""
+    device = select_device()
+    if not device:
+        return
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     screenshot_file = f"screenshot_{timestamp}.png"
-    output = run_command(f"adb exec-out screencap -p > {screenshot_file}")
+    output = adb_command(device, f"exec-out screencap -p > {screenshot_file}")
     if os.path.exists(screenshot_file):
         logging.info(f"Screenshot saved as {screenshot_file}")
     else:
@@ -149,6 +227,9 @@ def take_screenshot():
 
 def record_screen():
     """Record the screen of the connected device."""
+    device = select_device()
+    if not device:
+        return
     duration = input(color_text("Enter recording duration (seconds): ", 'blue'))
     try:
         duration = int(duration)
@@ -159,7 +240,7 @@ def record_screen():
         return
 
     logging.info(f"Recording for {duration} seconds...")
-    output = run_command(f"adb shell screenrecord --time-limit {duration} /sdcard/screenrecord.mp4 && adb pull /sdcard/screenrecord.mp4")
+    output = adb_command(device, f"shell screenrecord --time-limit {duration} /sdcard/screenrecord.mp4 && pull /sdcard/screenrecord.mp4")
     if os.path.exists("screenrecord.mp4"):
         logging.info("Screen recording saved as screenrecord.mp4")
     else:
@@ -167,7 +248,10 @@ def record_screen():
 
 def list_installed_apps():
     """List all installed apps on the connected device."""
-    output = run_command("adb shell pm list packages")
+    device = select_device()
+    if not device:
+        return
+    output = adb_command(device, "shell pm list packages")
     if "error" in output.lower():
         logging.error(output)
     else:
@@ -175,25 +259,44 @@ def list_installed_apps():
 
 def reboot_device():
     """Reboot the connected device."""
-    output = run_command("adb reboot")
+    device = select_device()
+    if not device:
+        return
+    output = adb_command(device, "reboot")
     if "error" in output.lower():
         logging.error(output)
     else:
         logging.info("Device rebooted.")
 
 def backup_device():
-    """Backup device data."""
+    """Backup device data with progress indicator."""
+    device = select_device()
+    if not device:
+        return
     backup_file = input(color_text("Enter backup file name: ", 'blue'))
-    output = run_command(f"adb backup -all -f {backup_file}.ab")
-    if "error" in output.lower():
-        logging.error(output)
-    else:
+    print(color_text("Starting backup...", 'blue'))
+    process = subprocess.Popen(f"adb -s {device} backup -all -f {backup_file}.ab", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    while True:
+        output = process.stdout.readline()
+        if output == '' and process.poll() is not None:
+            break
+        if output:
+            print(color_text(output.strip(), 'yellow'))
+            print(color_text("Backup in progress...", 'blue'))
+    
+    if process.returncode == 0:
         logging.info(f"Backup saved as {backup_file}.ab")
+    else:
+        logging.error("Backup failed.")
 
 def restore_device():
     """Restore device data."""
+    device = select_device()
+    if not device:
+        return
     backup_file = input(color_text("Enter backup file name: ", 'blue'))
-    output = run_command(f"adb restore {backup_file}.ab")
+    output = adb_command(device, f"restore {backup_file}.ab")
     if "error" in output.lower():
         logging.error(output)
     else:
@@ -201,9 +304,12 @@ def restore_device():
 
 def push_file():
     """Push a file to the device."""
+    device = select_device()
+    if not device:
+        return
     local_path = input(color_text("Enter local file path: ", 'blue'))
     remote_path = input(color_text("Enter remote file path: ", 'blue'))
-    output = run_command(f"adb push {local_path} {remote_path}")
+    output = adb_command(device, f"push {local_path} {remote_path}")
     if "error" in output.lower():
         logging.error(output)
     else:
@@ -211,9 +317,12 @@ def push_file():
 
 def pull_file():
     """Pull a file from the device."""
+    device = select_device()
+    if not device:
+        return
     remote_path = input(color_text("Enter remote file path: ", 'blue'))
     local_path = input(color_text("Enter local file path: ", 'blue'))
-    output = run_command(f"adb pull {remote_path} {local_path}")
+    output = adb_command(device, f"pull {remote_path} {local_path}")
     if "error" in output.lower():
         logging.error(output)
     else:
@@ -221,8 +330,11 @@ def pull_file():
 
 def uninstall_app():
     """Uninstall an app from the device."""
+    device = select_device()
+    if not device:
+        return
     package_name = input(color_text("Enter package name to uninstall: ", 'blue'))
-    output = run_command(f"adb uninstall {package_name}")
+    output = adb_command(device, f"uninstall {package_name}")
     if "success" in output.lower():
         logging.info(f"App {package_name} uninstalled successfully.")
     else:
@@ -230,16 +342,22 @@ def uninstall_app():
 
 def show_device_info():
     """Show detailed device information."""
-    model = run_command("adb shell getprop ro.product.model")
-    android_version = run_command("adb shell getprop ro.build.version.release")
-    battery_level = run_command("adb shell dumpsys battery | grep level")
+    device = select_device()
+    if not device:
+        return
+    model = adb_command(device, "shell getprop ro.product.model")
+    android_version = adb_command(device, "shell getprop ro.build.version.release")
+    battery_level = adb_command(device, "shell dumpsys battery | grep level")
     logging.info(f"Model: {model}")
     logging.info(f"Android Version: {android_version}")
     logging.info(f"Battery Level: {battery_level}")
 
 def mirror_screen():
     """Mirror the device screen to the computer."""
-    output = run_command("adb exec-out screenrecord --output-format=h264 - | ffplay -")
+    device = select_device()
+    if not device:
+        return
+    output = adb_command(device, "exec-out screenrecord --output-format=h264 - | ffplay -")
     if "error" in output.lower():
         logging.error(output)
     else:
@@ -247,9 +365,26 @@ def mirror_screen():
 
 def execute_custom_command():
     """Execute a custom ADB command."""
+    device = select_device()
+    if not device:
+        return
     command = input(color_text("Enter custom ADB command: ", 'blue'))
-    output = run_command(command)
+    output = adb_command(device, command)
     logging.info(output)
+
+def interactive_shell():
+    """Start an interactive ADB shell session."""
+    device = select_device()
+    if not device:
+        return
+    print(color_text(f"Starting interactive ADB shell for device {device}...", 'blue'))
+    print(color_text("Type 'exit' to return to the main menu.", 'yellow'))
+    while True:
+        command = input(color_text("adb shell> ", 'blue'))
+        if command.lower() == 'exit':
+            break
+        output = adb_command(device, f"shell {command}")
+        print(color_text(output, 'yellow'))
 
 def main():
     """Main function to display menu and handle user input."""
@@ -272,29 +407,33 @@ def main():
             elif choice == '5':
                 install_apk()
             elif choice == '6':
-                take_screenshot()
+                install_multiple_apks()
             elif choice == '7':
-                record_screen()
+                take_screenshot()
             elif choice == '8':
-                list_installed_apps()
+                record_screen()
             elif choice == '9':
-                reboot_device()
+                list_installed_apps()
             elif choice == '10':
-                backup_device()
+                reboot_device()
             elif choice == '11':
-                restore_device()
+                backup_device()
             elif choice == '12':
-                push_file()
+                restore_device()
             elif choice == '13':
-                pull_file()
+                push_file()
             elif choice == '14':
-                uninstall_app()
+                pull_file()
             elif choice == '15':
-                show_device_info()
+                uninstall_app()
             elif choice == '16':
-                mirror_screen()
+                show_device_info()
             elif choice == '17':
+                mirror_screen()
+            elif choice == '18':
                 execute_custom_command()
+            elif choice == '19':
+                interactive_shell()
             elif choice == '0':
                 logging.info("Exiting Ghost Framework. Goodbye!")
                 break
