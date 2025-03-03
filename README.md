@@ -18,8 +18,8 @@ Ghost Framework is a powerful **Remote ADB Control Tool** designed to help users
 
 ### Clone the Repository
 ```bash
-git clone https://github.com/your-username/ghost-framework.git
-cd ghost-framework
+git clone https://github.com/Midohajhouj/Ghost-Framework.git
+cd Ghost-Framework
 chmod +x *
 ./install.sh
 ```
