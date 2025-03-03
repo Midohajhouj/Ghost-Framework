@@ -25,8 +25,9 @@ chmod +x *
 ```
 
 ## Debian based distro
-download the release
+```bash
 dpkg -i ghost-framework.deb
+```
 
 ### Run the Tool
 ```bash
