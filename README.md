@@ -78,7 +78,7 @@ ghost
         `.              `.
           `'`'`'`---..,____`.
 Ghost Framework - Remote ADB Control Tool
-Coded by MIDO777
+Coded by LIONBAD
 
 [1] Show Connected Devices
 [2] Connect to a Device
