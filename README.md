@@ -64,6 +64,19 @@ ghost
 ## 🗼 Terminal Preview
 
 ```plaintext
+      .-.
+    .'   `.
+   :0 0  :
+   : o    `.
+  :         ``.
+ :             `.
+:  :         .   `.
+:   :          ` . `.
+ `.. :            `. ``;
+    `:;             `:'
+       :              `.
+        `.              `.
+          `'`'`'`---..,____`.
 Ghost Framework - Remote ADB Control Tool
 Coded by MIDO777
 
