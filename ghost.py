@@ -1,317 +1,610 @@
 #!/usr/bin/env python3
-# Author: LIONMAD
-
-import aiohttp
-import asyncio
-import time
-import argparse
-import threading
-import random
-import json
-import logging
-from colorama import init, Fore, Style
-from base64 import b64encode
-from itertools import cycle
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from collections import deque
-from uuid import uuid4
-import signal
-import sys
+# -*- coding: utf-8 -*-
 import os
+import sys
 import subprocess
-import hashlib
-import zlib
-import hmac
-from tqdm import tqdm
-import socket
-import struct
-import scapy.all as scapy
-import dns.resolver
-import psutil  # For performance monitoring
+import logging
+import re
+import asyncio
+from datetime import datetime
+import getpass  # For secure password input
+import shutil  # For file operations
+from cryptography.fernet import Fernet  # For secure file transfer
 
-# Initialize colorama
-init(autoreset=True)
-
-# Colors
-RED = Fore.RED
-GREEN = Fore.GREEN
-YELLOW = Fore.YELLOW
-BLUE = Fore.BLUE
-RESET = Style.RESET_ALL
-
-# Global variables
-requests_sent = 0
-successful_requests = 0
-failed_requests = 0
-last_time = time.time()
-requests_lock = threading.Lock()
-rps_history = deque(maxlen=60)  # Track RPS for the last 60 seconds
-
-# Rich User-Agent list
-USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-]
-
-HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
-
-# Logging setup
+# Set up logging with more detail (timestamp, log level, message)
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,  # Use DEBUG level for more detailed logs
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('load_test.log'),
-        logging.StreamHandler()
-    ]
+    handlers=[logging.FileHandler("ghost_framework.log"), logging.StreamHandler()]
 )
 
-# Function to display the banner
-def display_banner():
-    print(f"""
-{BLUE}
-╔══════════════════════════════════════════════════════════╗
-║                                                          ║
-║               Advanced Load Testing Tool                 ║
-║                                                          ║
-║                      Version 1.4                         ║
-║                                                          ║
-║                  Coded By: LIONBAD                       ║
-║                                                          ║
-╠══════════════════════════════════════════════════════════╣
-║                                                          ║
-║   ⚠ Use this tool only for legitimate purposes. ⚠        ║
-║               ⚠ Obtain proper authorization. ⚠           ║
-║                                                          ║
-╚══════════════════════════════════════════════════════════╝
-{RESET}
-""")
+# Color definitions for terminal outputs
+COLORS = {
+    "red": "\033[91m",
+    "green": "\033[92m",
+    "yellow": "\033[93m",
+    "blue": "\033[94m",
+    "bold": "\033[1m",
+    "end": "\033[0m",
+}
 
-def parse_args():
-    """Parse command-line arguments."""
-    parser = argparse.ArgumentParser(description="Load Testing Tool")
-    parser.add_argument("-u", "--url", required=True, help="Target URL or IP address")
-    parser.add_argument("-t", "--threads", type=int, default=10, help="Number of threads")
-    parser.add_argument("-p", "--pause", type=float, default=0.1, help="Pause time between requests")
-    parser.add_argument("-d", "--duration", type=int, default=1500, help="Test duration (seconds)")
-    parser.add_argument("--proxies", help="File containing proxy list")
-    parser.add_argument("--headers", help="Custom headers as JSON string")
-    parser.add_argument("--payload", choices=["json", "xml", "form"], default="json", help="Payload type")
-    parser.add_argument("--results", help="File to save results (JSON)")
-    parser.add_argument("--rate-limit", type=int, default=100, help="Rate limit for requests per second")
-    parser.add_argument("--attack-mode", choices=["http-flood", "slowloris", "udp-flood"], default="http-flood", help="Type of attack to perform")
-    parser.add_argument("--proxy-auth", help="Proxy authentication (username:password)")
-    parser.add_argument("--retry", type=int, default=3, help="Number of retries for failed requests")
-    parser.add_argument("--user-agents", help="File containing custom user-agent strings")
-    return parser.parse_args()
+# Generate a key for secure file transfer (you can save this key securely)
+SECURE_KEY = Fernet.generate_key()
+cipher_suite = Fernet(SECURE_KEY)
 
-def load_proxies(proxy_file: str):
-    """Load proxies from a file."""
-    try:
-        with open(proxy_file, "r") as f:
-            proxy_list = f.read().splitlines()
-        valid_proxies = [p.strip() for p in proxy_list if p.strip()]
-        print(f"Loaded {len(valid_proxies)} proxies.")
-        return valid_proxies
-    except FileNotFoundError:
-        print(f"Proxy file '{proxy_file}' not found.")
-        return []
+def color_text(text, color):
+    """Return text wrapped in color codes."""
+    return f"{COLORS.get(color, '')}{text}{COLORS['end']}"
 
-def validate_proxies(proxies):
-    """Validate proxies."""
-    validated_proxies = []
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        future_to_proxy = {executor.submit(check_proxy, proxy): proxy for proxy in proxies}
-        for future in as_completed(future_to_proxy):
-            proxy = future_to_proxy[future]
-            try:
-                if future.result():
-                    validated_proxies.append(proxy)
-            except Exception as e:
-                logging.error(f"Proxy validation failed for {proxy}: {e}")
-    print(f"Validated {len(validated_proxies)} proxies.")
-    return validated_proxies
+def clear_screen():
+    """Clear the terminal screen."""
+    os.system('cls' if os.name == 'nt' else 'clear')
 
-async def check_proxy(proxy: str):
-    """Check if a proxy is valid."""
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://httpbin.org/ip", proxy=proxy, timeout=3) as response:
-                return response.status == 200
-    except Exception:
-        return False
+def show_banner():
+    """Display the Ghost Framework banner."""
+    banner = f"""
+      .-.
+    .'   `.
+   :0 0  :
+   : o    `.
+  :         ``.
+ :             `.
+:  :         .   `.
+:   :          ` . `.
+ `.. :            `. ``;
+    `:;             `:'
+       :              `.
+        `.              `.     
+          `'`'`'`---..,____`.
+          
+{color_text('Ghost Framework', 'blue')} - {color_text('Remote ADB Control Tool', 'yellow')}
+    Coded by {color_text('LIONMAD', 'red')}
+"""
+    logging.info(banner)
 
-def generate_payload(payload_type: str):
-    """Generate a payload for HTTP requests."""
-    payload_id = str(uuid4())
-    if payload_type == "json":
-        return json.dumps({"id": payload_id, "data": b64encode(os.urandom(64)).decode()})
-    elif payload_type == "xml":
-        return f"<data><id>{payload_id}</id><value>{b64encode(os.urandom(64)).decode()}</value></data>"
-    elif payload_type == "form":
-        return {"id": payload_id, "data": b64encode(os.urandom(64)).decode()}
-    else:
-        return None
+def show_menu():
+    """Display the main menu options."""
+    menu = f"""
+{color_text('[1]', 'green')} Show Connected Devices
+{color_text('[2]', 'green')} Connect to a Device
+{color_text('[3]', 'green')} Disconnect from a Device
+{color_text('[4]', 'green')} Access Device Shell
+{color_text('[5]', 'green')} Install APK
+{color_text('[6]', 'green')} Install Multiple APKs
+{color_text('[7]', 'green')} Take Screenshot
+{color_text('[8]', 'green')} Record Screen
+{color_text('[9]', 'green')} List Installed Apps
+{color_text('[10]', 'green')} Reboot Device
+{color_text('[11]', 'green')} Backup Device
+{color_text('[12]', 'green')} Restore Device
+{color_text('[13]', 'green')} Push File (Secure)
+{color_text('[14]', 'green')} Pull File (Secure)
+{color_text('[15]', 'green')} Uninstall App
+{color_text('[16]', 'green')} Show Device Info
+{color_text('[17]', 'green')} Mirror Screen
+{color_text('[18]', 'green')} Execute Custom Command
+{color_text('[19]', 'green')} Interactive Shell
+{color_text('[20]', 'green')} List Files on Device
+{color_text('[21]', 'green')} Delete File on Device
+{color_text('[22]', 'green')} Check Battery Health
+{color_text('[23]', 'green')} Execute Script
+{color_text('[24]', 'green')} Interactive File Browser
+{color_text('[0]', 'red')} Exit
+"""
+    print(menu)
 
-async def resolve_target(target_url: str):
-    """Resolve the target URL to an IP address."""
-    try:
-        domain_or_ip = target_url.split("//")[-1].split("/")[0]
-        if is_valid_ip(domain_or_ip):
-            print(f"Target is an IP address: {domain_or_ip}")
-            return domain_or_ip
-        # Use dnspython to resolve the domain to an IP
-        resolver = dns.resolver.Resolver()
-        ip = resolver.resolve(domain_or_ip, "A")[0].to_text()
-        print(f"Resolved {domain_or_ip} to IP: {ip}")
-        return ip
-    except Exception as e:
-        logging.error(f"Failed to resolve domain: {e}")
-        return None
-
-def is_valid_ip(ip: str):
-    """Check if the given string is a valid IP address."""
-    try:
-        socket.inet_aton(ip)
-        return True
-    except socket.error:
-        return False
-
-async def rate_limited_attack(target_url, stop_event, pause_time, rate_limit, proxies=None, headers=None, payload_type="json", retry=3):
-    """Perform a rate-limited attack."""
-    global requests_sent, successful_requests, failed_requests, last_time
-    proxy_pool = cycle(proxies) if proxies else None
-    semaphore = asyncio.Semaphore(rate_limit)
-
-    if not target_url.startswith(("http://", "https://")):
-        target_url = f"http://{target_url}"
-
-    async with aiohttp.ClientSession() as session:
-        while not stop_event.is_set():
-            async with semaphore:
-                for attempt in range(retry):
-                    try:
-                        headers = headers or {"User-Agent": random.choice(USER_AGENTS)}
-                        method = random.choice(HTTP_METHODS)
-                        payload = generate_payload(payload_type) if method in ["POST", "PUT", "PATCH"] else None
-
-                        proxy = next(proxy_pool) if proxy_pool else None
-                        async with session.request(
-                            method, target_url, headers=headers, proxy=proxy, data=payload
-                        ) as response:
-                            with requests_lock:
-                                requests_sent += 1
-                                if response.status in [200, 201, 204]:
-                                    successful_requests += 1
-                                else:
-                                    failed_requests += 1
-                        break  # Exit retry loop if request succeeds
-                    except aiohttp.ClientError as e:
-                        with requests_lock:
-                            failed_requests += 1
-                        logging.error(f"Client error during request (attempt {attempt + 1}): {e}")
-                    except Exception as e:
-                        with requests_lock:
-                            failed_requests += 1
-                        logging.error(f"Unexpected error during request (attempt {attempt + 1}): {e}")
-                await asyncio.sleep(pause_time)
-
-def display_status(stop_event: threading.Event, duration: int, results_file=None):
-    """Display the status of the load test."""
-    start_time = time.time()
-    results = []
-    with tqdm(total=duration, desc="Progress") as pbar:
-        while not stop_event.is_set():
-            elapsed = time.time() - start_time
-            if elapsed >= duration:
-                break
-            with requests_lock:
-                current_time = time.time()
-                rps = requests_sent / max(1, current_time - start_time)
-                rps_history.append(rps)
-                stats = {
-                    "Time": elapsed,
-                    "Requests Sent": requests_sent,
-                    "Successful Requests": successful_requests,
-                    "Failed Requests": failed_requests,
-                    "RPS": rps,
-                }
-                results.append(stats)
-                print(f"{GREEN}Requests Sent: {requests_sent} | Successful: {successful_requests} | Failed: {failed_requests} | RPS: {rps:.2f}{RESET}")
-            pbar.update(1)
-            time.sleep(1)
-
-    if results_file:
-        with open(results_file, "w") as f:
-            json.dump(results, f, indent=4)
-        print(f"Results saved to {results_file}")
-
-def calculate_rps_stats():
-    """Calculate RPS statistics."""
-    if not rps_history:
-        return {"min": 0, "max": 0, "avg": 0}
-    return {
-        "min": min(rps_history),
-        "max": max(rps_history),
-        "avg": sum(rps_history) / len(rps_history),
-    }
-
-def signal_handler(sig, frame):
-    """Handle interrupt signals."""
-    print(f"{RED}\nInterrupted by user. Exiting gracefully...{RESET}")
-    sys.exit(0)
-
-async def main():
-    """Main function to run the load test."""
-    args = parse_args()
-
-    if args.threads <= 0 or args.pause <= 0 or args.duration <= 0 or args.rate_limit <= 0:
-        print(f"{RED}Error: Invalid argument values. Ensure all values are positive.{RESET}")
-        exit(1)
-
-    display_banner()
-
-    proxies = load_proxies(args.proxies) if args.proxies else []
-    if proxies:
-        proxies = validate_proxies(proxies)
-
-    headers = json.loads(args.headers) if args.headers else None
-
-    target = args.url.split("//")[-1].split("/")[0]
-
-    if not await resolve_target(target):
-        print(f"{RED}Exiting: Target is not reachable.{RESET}")
-        exit(1)
-
-    stop_event = threading.Event()
-    tasks = []
-
-    for _ in range(args.threads):
-        task = asyncio.create_task(rate_limited_attack(args.url, stop_event, args.pause, args.rate_limit, proxies, headers, args.payload, args.retry))
-        tasks.append(task)
-
-    display_thread = threading.Thread(
-        target=display_status, args=(stop_event, args.duration, args.results)
+async def run_command_async(command):
+    """Run a command asynchronously and return the output."""
+    process = await asyncio.create_subprocess_shell(
+        command,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
     )
-    display_thread.daemon = True
-    display_thread.start()
+    stdout, stderr = await process.communicate()
+    
+    if process.returncode != 0:
+        logging.error(f"Error executing command: {stderr.decode().strip()}")
+        return f"Error executing command: {stderr.decode().strip()}"
+    
+    logging.debug(f"Command executed: {command}")
+    return stdout.decode().strip()
 
-    signal.signal(signal.SIGINT, signal_handler)
-
+def run_command(command):
+    """Run a command synchronously and return the output."""
     try:
-        await asyncio.sleep(args.duration)
-    except KeyboardInterrupt:
-        print(f"{RED}Interrupted by user.{RESET}")
-    finally:
-        stop_event.set()
-        await asyncio.gather(*tasks)
+        result = subprocess.run(command, shell=True, text=True, capture_output=True, check=True)
+        logging.debug(f"Command executed: {command}")
+        return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error executing command: {e.stderr}")
+        return f"Error executing command: {e.stderr}"
 
-    with requests_lock:
-        rps_stats = calculate_rps_stats()
-        print(f"{GREEN}Test completed. Requests Sent: {requests_sent} | Successful: {successful_requests} | Failed: {failed_requests} | Final RPS: {rps_stats['avg']:.2f}{RESET}")
+def validate_ip(ip):
+    """Validate an IP address."""
+    pattern = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+    return pattern.match(ip) is not None
+
+def select_device():
+    """Allow the user to select a specific device if multiple devices are connected."""
+    devices_output = run_command("adb devices")
+    devices = [line.split('\t')[0] for line in devices_output.splitlines()[1:] if line.endswith('\tdevice')]
+    
+    if not devices:
+        logging.error("No devices connected.")
+        return None
+    elif len(devices) == 1:
+        return devices[0]
+    
+    print(color_text("Connected devices:", 'yellow'))
+    for i, device in enumerate(devices):
+        print(f"{color_text(f'[{i + 1}]', 'green')} {device}")
+    
+    choice = input(color_text("Select a device: ", 'blue'))
+    try:
+        choice = int(choice) - 1
+        if 0 <= choice < len(devices):
+            return devices[choice]
+        else:
+            logging.error("Invalid selection.")
+            return None
+    except ValueError:
+        logging.error("Invalid input.")
+        return None
+
+def show_connected_devices():
+    """Show all connected devices."""
+    output = run_command("adb devices")
+    if "error" in output.lower():
+        logging.error(output)
+    else:
+        print(color_text(output, 'yellow'))
+
+def connect_device():
+    """Connect to a device using its IP address."""
+    ip = input(color_text("Enter device IP: ", 'blue'))
+    if not validate_ip(ip):
+        logging.error("Invalid IP address.")
+        return
+    output = run_command(f"adb connect {ip}")
+    if "connected" in output.lower():
+        logging.info(output)
+    else:
+        logging.error(output)
+
+def disconnect_device():
+    """Disconnect from all connected devices."""
+    output = run_command("adb disconnect")
+    if "disconnected" in output.lower():
+        logging.info(output)
+    else:
+        logging.error(output)
+
+def access_shell():
+    """Access the shell of a connected device."""
+    device = select_device()
+    if not device:
+        return
+    print(color_text(f"Entering ADB shell for device {device}...", 'blue'))
+    try:
+        subprocess.run(f"adb -s {device} shell", shell=True, check=True)
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error accessing shell: {e}")
+
+def adb_command(device, command):
+    """Execute an ADB command on the specified device."""
+    try:
+        result = subprocess.run(f"adb -s {device} {command}", shell=True, text=True, capture_output=True, check=True)
+        logging.debug(f"Command executed: {command}")
+        return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error executing command: {e.stderr}")
+        return f"Error executing command: {e.stderr}"
+
+def install_apk():
+    """Install a single APK."""
+    device = select_device()
+    if not device:
+        return
+    apk_path = input(color_text("Enter path to APK: ", 'blue'))
+    if not os.path.exists(apk_path):
+        logging.error("APK file not found!")
+        return
+    
+    try:
+        logging.info(f"Installing APK: {apk_path}")
+        output = adb_command(device, f"install {apk_path}")
+        if "success" in output.lower():
+            logging.info(f"APK installed successfully: {apk_path}")
+        else:
+            logging.error(f"Failed to install APK: {output}")
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+
+def install_multiple_apks():
+    """Install multiple APKs in batch."""
+    device = select_device()
+    if not device:
+        return
+    apk_paths = input(color_text("Enter paths to APKs (comma-separated): ", 'blue')).split(',')
+    for apk_path in apk_paths:
+        apk_path = apk_path.strip()
+        if not os.path.exists(apk_path):
+            logging.error(f"APK file not found: {apk_path}")
+            continue
+        logging.info(f"Installing APK: {apk_path}")
+        output = adb_command(device, f"install {apk_path}")
+        if "success" in output.lower():
+            logging.info(f"APK installed successfully: {apk_path}")
+        else:
+            logging.error(f"Failed to install APK: {output}")
+
+def take_screenshot():
+    """Take screenshot with timestamp-based file naming."""
+    device = select_device()
+    if not device:
+        return
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    screenshot_file = f"screenshot_{timestamp}.png"
+    output = adb_command(device, f"exec-out screencap -p > {screenshot_file}")
+    if os.path.exists(screenshot_file):
+        logging.info(f"Screenshot saved as {screenshot_file}")
+    else:
+        logging.error("Failed to take screenshot.")
+
+def record_screen():
+    """Record the screen of the connected device."""
+    device = select_device()
+    if not device:
+        return
+    duration = input(color_text("Enter recording duration (seconds): ", 'blue'))
+    try:
+        duration = int(duration)
+        if duration <= 0:
+            raise ValueError("Duration must be a positive integer.")
+    except ValueError as e:
+        logging.error(f"Invalid duration: {e}")
+        return
+
+    logging.info(f"Recording for {duration} seconds...")
+    output = adb_command(device, f"shell screenrecord --time-limit {duration} /sdcard/screenrecord.mp4 && pull /sdcard/screenrecord.mp4")
+    if os.path.exists("screenrecord.mp4"):
+        logging.info("Screen recording saved as screenrecord.mp4")
+    else:
+        logging.error("Failed to record screen.")
+
+def list_installed_apps():
+    """List all installed apps on the connected device."""
+    device = select_device()
+    if not device:
+        return
+    output = adb_command(device, "shell pm list packages")
+    if "error" in output.lower():
+        logging.error(output)
+    else:
+        print(color_text(output, 'yellow'))
+
+def reboot_device():
+    """Reboot the connected device."""
+    device = select_device()
+    if not device:
+        return
+    output = adb_command(device, "reboot")
+    if "error" in output.lower():
+        logging.error(output)
+    else:
+        logging.info("Device rebooted.")
+
+def backup_device():
+    """Backup device data with progress indicator."""
+    device = select_device()
+    if not device:
+        return
+    backup_file = input(color_text("Enter backup file name: ", 'blue'))
+    print(color_text("Starting backup...", 'blue'))
+    process = subprocess.Popen(f"adb -s {device} backup -all -f {backup_file}.ab", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    while True:
+        output = process.stdout.readline()
+        if output == '' and process.poll() is not None:
+            break
+        if output:
+            print(color_text(output.strip(), 'yellow'))
+            print(color_text("Backup in progress...", 'blue'))
+    
+    if process.returncode == 0:
+        logging.info(f"Backup saved as {backup_file}.ab")
+    else:
+        logging.error("Backup failed.")
+
+def restore_device():
+    """Restore device data."""
+    device = select_device()
+    if not device:
+        return
+    backup_file = input(color_text("Enter backup file name: ", 'blue'))
+    output = adb_command(device, f"restore {backup_file}.ab")
+    if "error" in output.lower():
+        logging.error(output)
+    else:
+        logging.info(f"Restored from {backup_file}.ab")
+
+def push_file_secure():
+    """Push a file to the device securely."""
+    device = select_device()
+    if not device:
+        return
+    local_path = input(color_text("Enter local file path: ", 'blue'))
+    remote_path = input(color_text("Enter remote file path: ", 'blue'))
+    
+    # Encrypt the file before pushing
+    try:
+        with open(local_path, 'rb') as file:
+            file_data = file.read()
+        encrypted_data = cipher_suite.encrypt(file_data)
+        encrypted_file = local_path + ".enc"
+        with open(encrypted_file, 'wb') as file:
+            file.write(encrypted_data)
+        
+        output = adb_command(device, f"push {encrypted_file} {remote_path}")
+        if "error" in output.lower():
+            logging.error(output)
+        else:
+            logging.info(f"File pushed securely to {remote_path}")
+        os.remove(encrypted_file)  # Clean up the encrypted file
+    except Exception as e:
+        logging.error(f"Error during secure file push: {e}")
+
+def pull_file_secure():
+    """Pull a file from the device securely."""
+    device = select_device()
+    if not device:
+        return
+    remote_path = input(color_text("Enter remote file path: ", 'blue'))
+    local_path = input(color_text("Enter local file path: ", 'blue'))
+    
+    # Pull the encrypted file
+    encrypted_file = local_path + ".enc"
+    output = adb_command(device, f"pull {remote_path} {encrypted_file}")
+    if "error" in output.lower():
+        logging.error(output)
+        return
+    
+    # Decrypt the file
+    try:
+        with open(encrypted_file, 'rb') as file:
+            encrypted_data = file.read()
+        decrypted_data = cipher_suite.decrypt(encrypted_data)
+        with open(local_path, 'wb') as file:
+            file.write(decrypted_data)
+        logging.info(f"File pulled securely to {local_path}")
+        os.remove(encrypted_file)  # Clean up the encrypted file
+    except Exception as e:
+        logging.error(f"Error during secure file pull: {e}")
+
+def uninstall_app():
+    """Uninstall an app from the device."""
+    device = select_device()
+    if not device:
+        return
+    package_name = input(color_text("Enter package name to uninstall: ", 'blue'))
+    output = adb_command(device, f"uninstall {package_name}")
+    if "success" in output.lower():
+        logging.info(f"App {package_name} uninstalled successfully.")
+    else:
+        logging.error(f"Failed to uninstall app: {output}")
+
+def show_device_info():
+    """Show detailed device information."""
+    device = select_device()
+    if not device:
+        return
+    model = adb_command(device, "shell getprop ro.product.model")
+    android_version = adb_command(device, "shell getprop ro.build.version.release")
+    battery_level = adb_command(device, "shell dumpsys battery | grep level")
+    logging.info(f"Model: {model}")
+    logging.info(f"Android Version: {android_version}")
+    logging.info(f"Battery Level: {battery_level}")
+
+def mirror_screen():
+    """Mirror the device screen to the computer."""
+    device = select_device()
+    if not device:
+        return
+    output = adb_command(device, "exec-out screenrecord --output-format=h264 - | ffplay -")
+    if "error" in output.lower():
+        logging.error(output)
+    else:
+        logging.info("Screen mirroring started.")
+
+def execute_custom_command():
+    """Execute a custom ADB command."""
+    device = select_device()
+    if not device:
+        return
+    command = input(color_text("Enter custom ADB command: ", 'blue'))
+    output = adb_command(device, command)
+    logging.info(output)
+
+def interactive_shell():
+    """Start an interactive ADB shell session."""
+    device = select_device()
+    if not device:
+        return
+    print(color_text(f"Starting interactive ADB shell for device {device}...", 'blue'))
+    print(color_text("Type 'exit' to return to the main menu.", 'yellow'))
+    while True:
+        command = input(color_text("adb shell> ", 'blue'))
+        if command.lower() == 'exit':
+            break
+        output = adb_command(device, f"shell {command}")
+        print(color_text(output, 'yellow'))
+
+def list_files_on_device():
+    """List files in a specific directory on the device."""
+    device = select_device()
+    if not device:
+        return
+    remote_path = input(color_text("Enter remote directory path: ", 'blue'))
+    output = adb_command(device, f"shell ls {remote_path}")
+    if "error" in output.lower():
+        logging.error(output)
+    else:
+        print(color_text(output, 'yellow'))
+
+def delete_file_on_device():
+    """Delete a file or directory on the device."""
+    device = select_device()
+    if not device:
+        return
+    remote_path = input(color_text("Enter remote file/directory path: ", 'blue'))
+    output = adb_command(device, f"shell rm -rf {remote_path}")
+    if "error" in output.lower():
+        logging.error(output)
+    else:
+        logging.info(f"Deleted {remote_path}")
+
+def check_battery_health():
+    """Check the battery health and charging status."""
+    device = select_device()
+    if not device:
+        return
+    battery_health = adb_command(device, "shell dumpsys battery | grep health")
+    charging_status = adb_command(device, "shell dumpsys battery | grep status")
+    logging.info(f"Battery Health: {battery_health}")
+    logging.info(f"Charging Status: {charging_status}")
+
+def execute_script():
+    """Execute a series of ADB commands from a script file."""
+    device = select_device()
+    if not device:
+        return
+    script_path = input(color_text("Enter path to script file: ", 'blue'))
+    if not os.path.exists(script_path):
+        logging.error("Script file not found!")
+        return
+    
+    with open(script_path, 'r') as file:
+        commands = file.readlines()
+    
+    for command in commands:
+        command = command.strip()
+        if command:
+            logging.info(f"Executing command: {command}")
+            output = adb_command(device, command)
+            print(color_text(output, 'yellow'))
+
+def interactive_file_browser():
+    """Interactive file browser for selecting files to push/pull."""
+    device = select_device()
+    if not device:
+        return
+    remote_path = input(color_text("Enter remote directory path: ", 'blue'))
+    output = adb_command(device, f"shell ls {remote_path}")
+    if "error" in output.lower():
+        logging.error(output)
+        return
+    
+    files = output.splitlines()
+    print(color_text("Files in directory:", 'yellow'))
+    for i, file in enumerate(files):
+        print(f"{color_text(f'[{i + 1}]', 'green')} {file}")
+    
+    choice = input(color_text("Select a file: ", 'blue'))
+    try:
+        choice = int(choice) - 1
+        if 0 <= choice < len(files):
+            selected_file = files[choice]
+            action = input(color_text("Do you want to (1) Push or (2) Pull this file? ", 'blue'))
+            if action == '1':
+                local_path = input(color_text("Enter local file path: ", 'blue'))
+                output = adb_command(device, f"push {local_path} {remote_path}/{selected_file}")
+                if "error" in output.lower():
+                    logging.error(output)
+                else:
+                    logging.info(f"File pushed to {remote_path}/{selected_file}")
+            elif action == '2':
+                local_path = input(color_text("Enter local file path: ", 'blue'))
+                output = adb_command(device, f"pull {remote_path}/{selected_file} {local_path}")
+                if "error" in output.lower():
+                    logging.error(output)
+                else:
+                    logging.info(f"File pulled to {local_path}")
+            else:
+                logging.error("Invalid action.")
+        else:
+            logging.error("Invalid selection.")
+    except ValueError:
+        logging.error("Invalid input.")
+
+def main():
+    """Main function to display menu and handle user input."""
+    try:
+        while True:
+            clear_screen()
+            show_banner()
+            show_menu()
+
+            choice = input(color_text("Select an option: ", 'blue'))
+
+            if choice == '1':
+                show_connected_devices()
+            elif choice == '2':
+                connect_device()
+            elif choice == '3':
+                disconnect_device()
+            elif choice == '4':
+                access_shell()
+            elif choice == '5':
+                install_apk()
+            elif choice == '6':
+                install_multiple_apks()
+            elif choice == '7':
+                take_screenshot()
+            elif choice == '8':
+                record_screen()
+            elif choice == '9':
+                list_installed_apps()
+            elif choice == '10':
+                reboot_device()
+            elif choice == '11':
+                backup_device()
+            elif choice == '12':
+                restore_device()
+            elif choice == '13':
+                push_file_secure()
+            elif choice == '14':
+                pull_file_secure()
+            elif choice == '15':
+                uninstall_app()
+            elif choice == '16':
+                show_device_info()
+            elif choice == '17':
+                mirror_screen()
+            elif choice == '18':
+                execute_custom_command()
+            elif choice == '19':
+                interactive_shell()
+            elif choice == '20':
+                list_files_on_device()
+            elif choice == '21':
+                delete_file_on_device()
+            elif choice == '22':
+                check_battery_health()
+            elif choice == '23':
+                execute_script()
+            elif choice == '24':
+                interactive_file_browser()
+            elif choice == '0':
+                logging.info("Exiting Ghost Framework. Goodbye!")
+                break
+            else:
+                logging.error("Invalid option. Please try again.")
+
+            input(color_text("Press Enter to continue...", 'blue'))
+    
+    except KeyboardInterrupt:
+        logging.error("Exiting Ghost Framework. Goodbye!")
+        sys.exit(0)  # Exit cleanly
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
