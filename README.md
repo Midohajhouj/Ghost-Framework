@@ -32,6 +32,7 @@ dpkg -i ghost-framework.deb
 ### Run the Tool
 ```bash
 ghost
+passwd : ghost
 ```
 
 ---
