@@ -10,6 +10,10 @@ from datetime import datetime
 import getpass  # For secure password input
 import shutil  # For file operations
 from cryptography.fernet import Fernet  # For secure file transfer
+import keyring  # For secure key storage
+from tqdm import tqdm  # For progress bars
+import zipfile  # For file compression
+import gzip  # For file compression
 
 # Set up logging with more detail (timestamp, log level, message)
 logging.basicConfig(
@@ -28,9 +32,33 @@ COLORS = {
     "end": "\033[0m",
 }
 
-# Generate a key for secure file transfer (you can save this key securely)
-SECURE_KEY = Fernet.generate_key()
-cipher_suite = Fernet(SECURE_KEY)
+# Secure key storage using keyring
+SECURE_KEY = None
+try:
+    SECURE_KEY = keyring.get_password("ghost_framework", "secure_key")
+    if not SECURE_KEY:
+        SECURE_KEY = Fernet.generate_key().decode()
+        keyring.set_password("ghost_framework", "secure_key", SECURE_KEY)
+    cipher_suite = Fernet(SECURE_KEY.encode())
+except Exception as e:
+    logging.error(f"Failed to handle secure key storage: {e}")
+    sys.exit(1)
+
+# Password protection for the script
+SCRIPT_PASSWORD = "ghost"  # Change this to a secure password
+
+def authenticate():
+    """Authenticate the user before allowing access to the script."""
+    attempts = 3
+    while attempts > 0:
+        password = getpass.getpass(color_text("Enter password to access Ghost Framework: ", 'blue'))
+        if password == SCRIPT_PASSWORD:
+            return True
+        else:
+            attempts -= 1
+            logging.error(f"Incorrect password. {attempts} attempts remaining.")
+    logging.error("Too many failed attempts. Exiting.")
+    sys.exit(1)
 
 def color_text(text, color):
     """Return text wrapped in color codes."""
@@ -89,6 +117,10 @@ def show_menu():
 {color_text('[22]', 'green')} Check Battery Health
 {color_text('[23]', 'green')} Execute Script
 {color_text('[24]', 'green')} Interactive File Browser
+{color_text('[25]', 'green')} Batch Push/Pull Files
+{color_text('[26]', 'green')} Connect via Wi-Fi ADB
+{color_text('[27]', 'green')} Compress/Decompress Files
+{color_text('[28]', 'green')} View Device Logs (logcat)
 {color_text('[0]', 'red')} Exit
 """
     print(menu)
@@ -536,9 +568,125 @@ def interactive_file_browser():
     except ValueError:
         logging.error("Invalid input.")
 
+def batch_push_pull_files():
+    """Batch push or pull multiple files."""
+    device = select_device()
+    if not device:
+        return
+    action = input(color_text("Do you want to (1) Push or (2) Pull files? ", 'blue'))
+    if action not in ['1', '2']:
+        logging.error("Invalid action.")
+        return
+    
+    if action == '1':
+        local_dir = input(color_text("Enter local directory path: ", 'blue'))
+        remote_dir = input(color_text("Enter remote directory path: ", 'blue'))
+        if not os.path.isdir(local_dir):
+            logging.error("Local directory not found.")
+            return
+        
+        files = os.listdir(local_dir)
+        for file in tqdm(files, desc="Pushing files", unit="file"):
+            local_path = os.path.join(local_dir, file)
+            output = adb_command(device, f"push {local_path} {remote_dir}")
+            if "error" in output.lower():
+                logging.error(f"Failed to push {file}: {output}")
+            else:
+                logging.info(f"Pushed {file} to {remote_dir}")
+    
+    elif action == '2':
+        remote_dir = input(color_text("Enter remote directory path: ", 'blue'))
+        local_dir = input(color_text("Enter local directory path: ", 'blue'))
+        if not os.path.isdir(local_dir):
+            logging.error("Local directory not found.")
+            return
+        
+        output = adb_command(device, f"shell ls {remote_dir}")
+        if "error" in output.lower():
+            logging.error(output)
+            return
+        
+        files = output.splitlines()
+        for file in tqdm(files, desc="Pulling files", unit="file"):
+            output = adb_command(device, f"pull {remote_dir}/{file} {local_dir}")
+            if "error" in output.lower():
+                logging.error(f"Failed to pull {file}: {output}")
+            else:
+                logging.info(f"Pulled {file} to {local_dir}")
+
+def connect_wifi_adb():
+    """Connect to a device over Wi-Fi using ADB."""
+    device = select_device()
+    if not device:
+        return
+    ip = input(color_text("Enter device IP address: ", 'blue'))
+    if not validate_ip(ip):
+        logging.error("Invalid IP address.")
+        return
+    output = run_command(f"adb -s {device} tcpip 5555")
+    if "restarting" in output.lower():
+        logging.info("ADB daemon restarted in TCP mode.")
+        output = run_command(f"adb -s {device} connect {ip}")
+        if "connected" in output.lower():
+            logging.info(f"Connected to {ip} over Wi-Fi.")
+        else:
+            logging.error(f"Failed to connect to {ip}.")
+    else:
+        logging.error("Failed to restart ADB in TCP mode.")
+
+def compress_file(file_path, compress_type="zip"):
+    """Compress a file using ZIP or GZIP."""
+    try:
+        if compress_type == "zip":
+            with zipfile.ZipFile(f"{file_path}.zip", 'w') as zipf:
+                zipf.write(file_path, os.path.basename(file_path))
+            logging.info(f"File compressed as {file_path}.zip")
+        elif compress_type == "gzip":
+            with open(file_path, 'rb') as f_in:
+                with gzip.open(f"{file_path}.gz", 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+            logging.info(f"File compressed as {file_path}.gz")
+        else:
+            logging.error("Unsupported compression type.")
+    except Exception as e:
+        logging.error(f"Error compressing file: {e}")
+
+def decompress_file(file_path):
+    """Decompress a ZIP or GZIP file."""
+    try:
+        if file_path.endswith(".zip"):
+            with zipfile.ZipFile(file_path, 'r') as zipf:
+                zipf.extractall(os.path.dirname(file_path))
+            logging.info(f"File decompressed from {file_path}")
+        elif file_path.endswith(".gz"):
+            with gzip.open(file_path, 'rb') as f_in:
+                with open(file_path[:-3], 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+            logging.info(f"File decompressed from {file_path}")
+        else:
+            logging.error("Unsupported file format.")
+    except Exception as e:
+        logging.error(f"Error decompressing file: {e}")
+
+def view_device_logs():
+    """View device logs (logcat) in real-time."""
+    device = select_device()
+    if not device:
+        return
+    print(color_text("Starting logcat... Press Ctrl+C to stop.", 'blue'))
+    try:
+        subprocess.run(f"adb -s {device} logcat", shell=True, check=True)
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error viewing logs: {e}")
+    except KeyboardInterrupt:
+        logging.info("Logcat stopped.")
+
 def main():
     """Main function to display menu and handle user input."""
     try:
+        if not authenticate():
+            return
+        
         while True:
             clear_screen()
             show_banner()
@@ -594,6 +742,22 @@ def main():
                 execute_script()
             elif choice == '24':
                 interactive_file_browser()
+            elif choice == '25':
+                batch_push_pull_files()
+            elif choice == '26':
+                connect_wifi_adb()
+            elif choice == '27':
+                file_path = input(color_text("Enter file path to compress/decompress: ", 'blue'))
+                action = input(color_text("Do you want to (1) Compress or (2) Decompress? ", 'blue'))
+                if action == '1':
+                    compress_type = input(color_text("Enter compression type (zip/gzip): ", 'blue'))
+                    compress_file(file_path, compress_type)
+                elif action == '2':
+                    decompress_file(file_path)
+                else:
+                    logging.error("Invalid action.")
+            elif choice == '28':
+                view_device_logs()
             elif choice == '0':
                 logging.info("Exiting Ghost Framework. Goodbye!")
                 break
