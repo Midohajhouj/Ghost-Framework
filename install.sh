@@ -37,6 +37,10 @@ install_dependencies() {
         echo -e "${RED}[!] Unsupported package manager. Please install adb and ffmpeg manually.${NC}"
         exit 1
     fi
+
+    # Install Python dependencies
+    echo -e "${YELLOW}[*] Installing Python dependencies...${NC}"
+    pip install keyring --break-system-packages >/dev/null 2>&1
     echo -e "${GREEN}[+] Dependencies installed successfully!${NC}"
 }
 
@@ -58,19 +62,15 @@ create_symlink() {
 main() {
     header
     echo -e "${YELLOW}[*] Starting installation of Ghost Framework...${NC}"
-    progress_bar 2
 
     # Install dependencies
     install_dependencies
-    progress_bar 2
 
     # Make ghost.py executable
     make_executable
-    progress_bar 2
 
     # Create symlink
     create_symlink
-    progress_bar 2
 
     echo -e "${GREEN}[+] Installation complete!${NC}"
     echo -e "${BLUE}===========================================${NC}"
