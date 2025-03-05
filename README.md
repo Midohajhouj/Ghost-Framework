@@ -55,7 +55,7 @@ passwd : ghost
         `.              `.
           `'`'`'`---..,____`.
 Ghost Framework - Remote ADB Control Tool
-Coded by LIONBAD
+Coded by LIONMAD
 
 [1] Show Connected Devices
 [2] Connect to a Device
