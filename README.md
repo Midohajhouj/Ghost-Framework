@@ -38,31 +38,6 @@ passwd : ghost
 
 ---
 
-## 📜 Main Menu Options
-
-| **Option** | **Action**                   |
-|------------|------------------------------|
-| 1          | Show Connected Devices       |
-| 2          | Connect to a Device          |
-| 3          | Disconnect from a Device     |
-| 4          | Access Device Shell          |
-| 5          | Install APK                  |
-| 6          | Take Screenshot              |
-| 7          | Record Screen                |
-| 8          | List Installed Apps          |
-| 9          | Reboot Device                |
-| 10         | Backup Device Data           |
-| 11         | Restore Device Data          |
-| 12         | Push File                    |
-| 13         | Pull File                    |
-| 14         | Uninstall App                |
-| 15         | Show Device Info             |
-| 16         | Mirror Device Screen         |
-| 17         | Execute Custom ADB Command   |
-| 0          | Exit                         |
-
----
-
 ## 🗼 Terminal Preview
 
 ```plaintext
