@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Author: LIONMAD
-import os
-import sys
-import subprocess
-import logging
-import re
-import asyncio
-from datetime import datetime
-import getpass  # For secure password input
-import shutil  # For file operations
-from cryptography.fernet import Fernet  # For secure file transfer
-import keyring  # For secure key storage
-from tqdm import tqdm  # For progress bars
-import zipfile  # For file compression
-import gzip  # For file compression
+
+# Standard Libraries
+import os  # Operating system interactions (file paths, directories, etc.)
+import sys  # System-specific parameters and functions
+import subprocess  # Running and managing subprocesses
+import logging  # Logging for debugging and event tracking
+import re  # Regular expression matching and operations
+import asyncio  # Asynchronous programming and concurrency
+from datetime import datetime  # Handling dates and times
+import getpass  # Securely input passwords in the terminal
+import shutil  # High-level file and directory operations
+import zipfile  # File compression and decompression using ZIP format
+import gzip  # File compression and decompression using GZIP format
+
+# Third-Party Libraries
+from cryptography.fernet import Fernet  # Encryption and decryption for secure file transfer
+import keyring  # Secure storage for encryption keys and credentials
+from tqdm import tqdm  # Display progress bars for loops or processes
 
 # Set up logging with more detail (timestamp, log level, message)
 logging.basicConfig(
