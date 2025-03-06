@@ -68,8 +68,8 @@ make_executable() {
 # Function to create a symlink for easy access
 create_symlink() {
     echo -e "${YELLOW}[*] Creating symlink for easy access...${NC}"
-    sudo ln -sf "$(pwd)/ghost.py" /usr/local/bin/ghost
     sudo mv -f "$(pwd)/ghost.py" /opt
+    sudo ln -sf "/opt/ghost.py" /usr/local/bin/ghost
     echo -e "${GREEN}[+] Symlink created! You can now run 'ghost' from anywhere.${NC}"
 }
 
