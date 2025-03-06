@@ -91,7 +91,7 @@ main() {
 
     echo -e "${GREEN}[+] Installation complete!${NC}"
     echo -e "${BLUE}===========================================${NC}"
-    echo -e "${YELLOW}To start Ghost Framework, simply type 'ghost' in your terminal.${NC}"
+    echo -e "${YELLOW}To start Ghost Framework, simply type 'ghost' in your terminal.passwd : ghost${NC}"
     echo
 }
 
