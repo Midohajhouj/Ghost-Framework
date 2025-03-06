@@ -44,6 +44,20 @@ install_dependencies() {
     echo -e "${GREEN}[+] Dependencies installed successfully!${NC}"
 }
 
+# Function to download ghost.py if it doesn't exist
+download_ghost_py() {
+    if [ ! -f "ghost.py" ]; then
+        echo -e "${YELLOW}[*] ghost.py not found. Downloading from external source...${NC}"
+        curl -o ghost.py "https://raw.githubusercontent.com/Midohajhouj/Ghost-Framework/refs/heads/main/ghost.py"
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}[+] ghost.py downloaded successfully!${NC}"
+        else
+            echo -e "${RED}[!] Failed to download ghost.py. Please check your internet connection or download it manually.${NC}"
+            exit 1
+        fi
+    fi
+}
+
 # Function to make ghost.py executable
 make_executable() {
     echo -e "${YELLOW}[*] Making ghost.py executable...${NC}"
@@ -62,6 +76,9 @@ create_symlink() {
 main() {
     header
     echo -e "${YELLOW}[*] Starting installation of Ghost Framework...${NC}"
+
+    # Download ghost.py if it doesn't exist
+    download_ghost_py
 
     # Install dependencies
     install_dependencies
