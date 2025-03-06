@@ -98,35 +98,22 @@ def show_banner():
 def show_menu():
     """Display the main menu options."""
     menu = f"""
-{color_text('[1]', 'green')} Show Connected Devices
-{color_text('[2]', 'green')} Connect to a Device
-{color_text('[3]', 'green')} Disconnect from a Device
-{color_text('[4]', 'green')} Access Device Shell
-{color_text('[5]', 'green')} Install APK
-{color_text('[6]', 'green')} Install Multiple APKs
-{color_text('[7]', 'green')} Take Screenshot
-{color_text('[8]', 'green')} Record Screen
-{color_text('[9]', 'green')} List Installed Apps
-{color_text('[10]', 'green')} Reboot Device
-{color_text('[11]', 'green')} Backup Device
-{color_text('[12]', 'green')} Restore Device
-{color_text('[13]', 'green')} Push File (Secure)
-{color_text('[14]', 'green')} Pull File (Secure)
-{color_text('[15]', 'green')} Uninstall App
-{color_text('[16]', 'green')} Show Device Info
-{color_text('[17]', 'green')} Mirror Screen
-{color_text('[18]', 'green')} Execute Custom Command
-{color_text('[19]', 'green')} Interactive Shell
-{color_text('[20]', 'green')} List Files on Device
-{color_text('[21]', 'green')} Delete File on Device
-{color_text('[22]', 'green')} Check Battery Health
-{color_text('[23]', 'green')} Execute Script
-{color_text('[24]', 'green')} Interactive File Browser
-{color_text('[25]', 'green')} Batch Push/Pull Files
-{color_text('[26]', 'green')} Connect via Wi-Fi ADB
-{color_text('[27]', 'green')} Compress/Decompress Files
-{color_text('[28]', 'green')} View Device Logs (logcat)
-{color_text('[0]', 'red')} Exit
+{color_text('[1]', 'green')} Show Connected Devices          {color_text('[15]', 'green')} Uninstall App
+{color_text('[2]', 'green')} Connect to a Device             {color_text('[16]', 'green')} Show Device Info
+{color_text('[3]', 'green')} Disconnect from a Device        {color_text('[17]', 'green')} Mirror Screen
+{color_text('[4]', 'green')} Access Device Shell             {color_text('[18]', 'green')} Execute Custom Command
+{color_text('[5]', 'green')} Install APK                     {color_text('[19]', 'green')} Interactive Shell
+{color_text('[6]', 'green')} Install Multiple APKs           {color_text('[20]', 'green')} List Files on Device
+{color_text('[7]', 'green')} Take Screenshot                 {color_text('[21]', 'green')} Delete File on Device
+{color_text('[8]', 'green')} Record Screen                   {color_text('[22]', 'green')} Check Battery Health
+{color_text('[9]', 'green')} List Installed Apps             {color_text('[23]', 'green')} Execute Script
+{color_text('[10]', 'green')} Reboot Device                  {color_text('[24]', 'green')} Interactive File Browser
+{color_text('[11]', 'green')} Backup Device                  {color_text('[25]', 'green')} Batch Push/Pull Files
+{color_text('[12]', 'green')} Restore Device                 {color_text('[26]', 'green')} Connect via Wi-Fi ADB
+{color_text('[13]', 'green')} Push File (Secure)             {color_text('[27]', 'green')} Compress/Decompress Files
+{color_text('[14]', 'green')} Pull File (Secure)             {color_text('[28]', 'green')} View Device Logs (logcat)
+                         {color_text('[0]', 'red')} Exit
+
 """
     print(menu)
 
