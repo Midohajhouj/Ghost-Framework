@@ -69,6 +69,7 @@ make_executable() {
 create_symlink() {
     echo -e "${YELLOW}[*] Creating symlink for easy access...${NC}"
     sudo cp "$(pwd)/ghost.py" /usr/local/bin/ghost
+    sudo mv "$(pwd)/ghost.py" /opt
     echo -e "${GREEN}[+] Symlink created! You can now run 'ghost' from anywhere.${NC}"
 }
 
