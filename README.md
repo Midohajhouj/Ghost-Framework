@@ -82,7 +82,7 @@ Coded by LIONMAD
 
 ## 💂 Logs
 
-All logs are saved in ghost_framework.log for detailed debugging. The log file records:
+All logs are saved in 'ghost_framework.log' for detailed debugging. The log file records:
 
 Connection Attempts: Details on successful/failed connections to devices.
 
