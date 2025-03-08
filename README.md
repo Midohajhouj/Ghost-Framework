@@ -1,4 +1,11 @@
-# 👻 Ghost Framework
+# <p align="center"> 👻 Ghost Framework
+
+<p align="center">
+  <img src="https://img.shields.io/github/v/release/Midohajhouj/Ghost-Framework?label=Version&color=a80505">
+  <img src="https://img.shields.io/github/stars/Midohajhouj/Ghost-Framework?style=flat&label=Stars&color=a80505">
+  <img src="https://img.shields.io/github/repo-size/Midohajhouj/Ghost-Framework?label=Size&color=a80505">
+  <img src="https://img.shields.io/github/languages/top/Midohajhouj/Ghost-Framework?color=a80505">
+</p>
 
 Ghost Framework is a powerful **Remote ADB Control Tool** designed to help users interact with Android devices efficiently. The framework allows you to perform a variety of tasks such as connecting to devices, managing apps, taking screenshots, recording the screen, and much more. all via an intuitive command-line interface.
 
