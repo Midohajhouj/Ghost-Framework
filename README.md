@@ -1,4 +1,4 @@
-# <p align="center"> 👻 Ghost Framework
+# <p align="center"> **👻 Ghost Framework**
 
 <p align="center">  
   <img src="https://img.shields.io/github/v/release/Midohajhouj/Ghost-Framework?label=Version&color=a80505">  
@@ -30,11 +30,11 @@
 ### 🔧 Setup & Usage
 
 1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/Midohajhouj/Ghost-Framework.git
-   cd Ghost-Framework
-   chmod +x *
-   ./install.sh
+```bash
+git clone https://github.com/Midohajhouj/Ghost-Framework.git
+cd Ghost-Framework
+chmod +x *
+./install.sh
 
 2. **Run the Tool**:
 After installation, launch Ghost Framework with:
