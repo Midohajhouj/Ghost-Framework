@@ -27,8 +27,6 @@
 
 ---
 
-## 🚀 Getting Started
-
 ### 🔧 Setup & Usage
 
 1. **Clone the Repository**:
@@ -43,11 +41,12 @@ After installation, launch Ghost Framework with:
 ```bash
 ghost
 ```
-Default *password*: **ghost** (please change this for security purposes).
+
+Default password: **ghost** (please change this for security purposes).
 
 ---
 
-🗼 Terminal Preview
+## 🗼 Terminal Preview
 ```bash
       .-.
     .'   `.
@@ -81,7 +80,7 @@ Coded by LIONMAD
 
 ---
 
-💂 Logs
+## 💂 Logs
 
 All logs are saved in ghost_framework.log for detailed debugging. The log file records:
 
@@ -97,14 +96,14 @@ Errors and Successes: Provides logs on issues or successful operations.
 
 ---
 
-🤝 Contribution
+## 🤝 Contribution
 
 Contributions are welcome! Whether you're submitting bug fixes, suggesting new features, or improving the documentation, feel free to open an issue or submit a pull request. Make sure to follow the project's Code of Conduct and contribution guidelines.
 
 
 ---
 
-📄 License
+## 📄 License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
 
