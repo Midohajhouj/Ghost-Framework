@@ -43,7 +43,7 @@ After installation, launch Ghost Framework with:
 ```bash
 ghost
 ```
-Default *password*: *ghost* (please change this for security purposes).
+Default *password*: **ghost** (please change this for security purposes).
 
 ---
 
