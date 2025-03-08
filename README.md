@@ -1,4 +1,4 @@
-# <p align="center"> ** 👻 Ghost Framework **
+# <p align="center"> **👻 Ghost Framework**
 
 <p align="center">
   <img src="https://img.shields.io/github/v/release/Midohajhouj/Ghost-Framework?label=Version&color=a80505">
