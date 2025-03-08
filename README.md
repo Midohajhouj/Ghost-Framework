@@ -45,13 +45,10 @@ ghost
 ```
 Default password: ghost (please change this for security purposes).
 
-
-
-
 ---
 
 🗼 Terminal Preview
-
+```bash
       .-.
     .'   `.
    :0 0  :
@@ -80,6 +77,7 @@ Coded by LIONMAD
 [9] Wi-Fi ADB  
 [0] Exit
 
+```
 
 ---
 
