@@ -33,8 +33,11 @@
 ```bash
 git clone https://github.com/Midohajhouj/Ghost-Framework.git
 cd Ghost-Framework
+```
+```bash
 chmod +x *
 ./install.sh
+```
 
 2. **Run the Tool**:
 After installation, launch Ghost Framework with:
