@@ -24,11 +24,6 @@ chmod +x *
 ./install.sh
 ```
 
-## Debian based distro
-```bash
-dpkg -i ghost-framework.deb
-```
-
 ### Run the Tool
 ```bash
 ghost
