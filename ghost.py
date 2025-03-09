@@ -3,22 +3,22 @@
 # Author: LIONMAD
 
 # Standard Libraries
-import os  # Operating system interactions (file paths, directories, etc.)
-import sys  # System-specific parameters and functions
-import subprocess  # Running and managing subprocesses
-import logging  # Logging for debugging and event tracking
-import re  # Regular expression matching and operations
-import asyncio  # Asynchronous programming and concurrency
-from datetime import datetime  # Handling dates and times
-import getpass  # Securely input passwords in the terminal
-import shutil  # High-level file and directory operations
-import zipfile  # File compression and decompression using ZIP format
-import gzip  # File compression and decompression using GZIP format
+import os 
+import sys 
+import subprocess 
+import logging
+import re 
+import asyncio 
+from datetime import datetime  
+import getpass 
+import shutil 
+import zipfile 
+import gzip
 
 # Third-Party Libraries
-from cryptography.fernet import Fernet  # Encryption and decryption for secure file transfer
-import keyring  # Secure storage for encryption keys and credentials
-from tqdm import tqdm  # Display progress bars for loops or processes
+from cryptography.fernet import Fernet 
+import keyring
+from tqdm import tqdm 
 
 # Set up logging with more detail (timestamp, log level, message)
 logging.basicConfig(
