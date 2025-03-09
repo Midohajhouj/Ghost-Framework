@@ -46,7 +46,7 @@ After installation, launch Ghost Framework with:
 ghost
 ```
 
-Default password: **ghost** (please change this for security purposes).
+Default password: **ghost**
 
 ---
 
