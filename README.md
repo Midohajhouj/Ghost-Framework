@@ -2,6 +2,7 @@
 
 <p align="center">  
   <img src="https://img.shields.io/github/v/release/Midohajhouj/Ghost-Framework?label=Version&color=a80505">  
+  <img src="https://img.shields.io/badge/Open%20Source-Yes-darkviolet?style=flat-square">
   <img src="https://img.shields.io/github/stars/Midohajhouj/Ghost-Framework?style=flat&label=Stars&color=a80505">  
   <img src="https://img.shields.io/github/repo-size/Midohajhouj/Ghost-Framework?label=Size&color=a80505">  
   <img src="https://img.shields.io/github/languages/top/Midohajhouj/Ghost-Framework?color=a80505">  
