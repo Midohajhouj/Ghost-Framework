@@ -1,6 +1,17 @@
-#!/usr/bin/env python3
+#!/usr/bin/env bash
 # -*- coding: utf-8 -*-
-# Author: LIONMAD
+### BEGIN INIT INFO
+# Provides:          ghost_framework
+# Required-Start:    $network $remote_fs
+# Required-Stop:     $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Remote ADB Control Tool for Android Devices
+# Description:       A tool to manage Android devices via ADB for debugging, file management, screen mirroring, and more.
+# Author:            LIONMAD <https://github.com/Midohajhouj>
+# Version:           v.2.0
+# License:           MIT License - https://opensource.org/licenses/MIT
+### END INIT INFO
 
 # Standard Libraries
 import os 
