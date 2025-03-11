@@ -9,7 +9,7 @@
 # Short-Description: Remote ADB Control Tool for Android Devices
 # Description:       A tool to manage Android devices via ADB for debugging, file management, screen mirroring, and more.
 # Author:            LIONMAD <https://github.com/Midohajhouj>
-# Version:           v.2
+# Version:           v.2.0
 # License:           MIT License - https://opensource.org/licenses/MIT
 ### END INIT INFO
 
