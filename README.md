@@ -32,14 +32,15 @@
 
 ### 🔧 Setup & Usage
 
-1. **Clone the Repository**:
+1. **Clone the repository**:
 ```bash
-git clone https://github.com/Midohajhouj/Ghost-Framework.git
-cd Ghost-Framework
+sudo git clone https://github.com/Midohajhouj/Ghost-Framework.git /opt/Ghost-Framework
+cd /opt/Ghost-Framework
+chmod +x *
 ```
 ```bash
 chmod +x *
-./install.sh
+sudo ./install.sh
 ```
 
 2. **Run the Tool**:
@@ -88,7 +89,7 @@ Coded by LIONMAD
 
 ## 💂 Logs
 
-All logs are saved in `ghost_framework.log` for detailed debugging. The log file records:
+All logs are saved in `ghost_framework.log` in /opt/Ghost-Framework for detailed debugging. The log file records:
 
 Connection Attempts: Details on successful/failed connections to devices.
 
