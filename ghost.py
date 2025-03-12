@@ -35,7 +35,7 @@ from tqdm import tqdm
 logging.basicConfig(
     level=logging.DEBUG,  # Use DEBUG level for more detailed logs
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.FileHandler("ghost_framework.log"), logging.StreamHandler()]
+    handlers=[logging.FileHandler("/opt/Ghost-Framework/logs/ghost_framework.log"), logging.StreamHandler()]
 )
 
 # Color definitions for terminal outputs
