@@ -34,12 +34,18 @@
 
 1. **Clone the repository**:
 ```bash
-sudo git clone https://github.com/Midohajhouj/Ghost-Framework.git /opt/Ghost-Framework
+sudo git clone https://github.com/Midohajhouj/Ghost-Framework.git /opt/Ghost-Framework 
+```
+```bash
 cd /opt/Ghost-Framework
+```
+```bash
 chmod +x *
 ```
 ```bash
 chmod +x *
+```
+```bash
 sudo ./install.sh
 ```
 
