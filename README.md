@@ -43,9 +43,6 @@ cd /opt/Ghost-Framework
 chmod +x *
 ```
 ```bash
-chmod +x *
-```
-```bash
 sudo ./install.sh
 ```
 
