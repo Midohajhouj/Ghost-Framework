@@ -31,11 +31,21 @@ from cryptography.fernet import Fernet
 import keyring
 from tqdm import tqdm 
 
+# Define the log directory
+log_dir = "/opt/Ghost-Framework/logs/"
+
+# Create the directory if it doesn't exist
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
 # Set up logging with more detail (timestamp, log level, message)
 logging.basicConfig(
     level=logging.DEBUG,  # Use DEBUG level for more detailed logs
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.FileHandler("/opt/Ghost-Framework/logs/ghost_framework.log"), logging.StreamHandler()]
+    handlers=[
+        logging.FileHandler(os.path.join(log_dir, "ghost_framework.log")),
+        logging.StreamHandler()
+    ]
 )
 
 # Color definitions for terminal outputs
