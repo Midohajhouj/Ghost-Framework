@@ -40,6 +40,7 @@ install_dependencies() {
 
     # Install Python dependencies
     echo -e "${YELLOW}[*] Installing Python dependencies...${NC}"
+    sudo apt install pip -y
     pip install cryptography keyring tqdm keyrings.alt --break-system-packages >/dev/null 2>&1
     echo -e "${GREEN}[+] Dependencies installed successfully!${NC}"
 }
