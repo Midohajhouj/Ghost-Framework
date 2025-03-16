@@ -54,9 +54,6 @@ After installation, launch Ghost Framework with:
 ```bash
 ghost
 ```
-
-Default password: **ghost**
-
 ---
 
 ## 🗼 Terminal Preview
