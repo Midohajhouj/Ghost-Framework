@@ -13,7 +13,7 @@ header() {
     echo -e "${BLUE}"
     echo -e "${NC}"
     echo -e "${YELLOW}Ghost Framework - Remote ADB Control Tool${NC}"
-    echo -e "${YELLOW}Coded by LIONMAD${NC}"
+    echo -e "${YELLOW}Coded by MIDO${NC}"
     echo -e "${BLUE}===========================================${NC}"
     echo
 }
