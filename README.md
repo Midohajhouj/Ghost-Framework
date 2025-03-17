@@ -116,5 +116,5 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 ---
 
-### **<p align="center"> Coded by <a href="https://github.com/Midohajhouj">MIDO</a> </p>**
+### **<p align="center"> Coded by <a href="https://github.com/Midohajhouj">MIDØ</a> </p>**
 
