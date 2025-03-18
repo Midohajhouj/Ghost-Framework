@@ -68,9 +68,9 @@ def show_banner():
     """Display the Ghost Framework banner."""
     banner = f"""
       .-.
-    .'   `.
-   :0 0  :
-   : o    `.
+    .'   `.       {color_text('Ghost Framework v2.0', 'blue')}
+   :0 0  :        {color_text('Remote ADB Control Tool', 'yellow')}
+   : o    `.      Coded by {color_text('MIDØ', 'red')}
   :         ``.
  :             `.
 :  :         .   `.
@@ -81,8 +81,6 @@ def show_banner():
         `.              `.     
           `'`'`'`---..,____`.
           
-{color_text('Ghost Framework', 'blue')} - {color_text('Remote ADB Control Tool', 'yellow')}
-    Coded by {color_text('MIDØ', 'red')}
 """
     logging.info(banner)
 
