@@ -70,7 +70,7 @@ def show_banner():
       .-.
     .'   `.       {color_text('Ghost Framework v2.0', 'blue')}
    :0 0  :        {color_text('Remote ADB Control Tool', 'yellow')}
-   : o    `.      Coded by {color_text('MIDØ', 'red')}
+   : o    `.      {color_text ('Coded by MIDØ' , 'red')}
   :         ``.
  :             `.
 :  :         .   `.
@@ -80,10 +80,11 @@ def show_banner():
        :              `.
         `.              `.     
           `'`'`'`---..,____`.
-          
+
+{color_text('Ghost Framework v2.0', 'blue')}        
 """
     logging.info(banner)
-
+    
 def show_menu():
     """Display the main menu options."""
     menu = f"""
@@ -92,15 +93,17 @@ def show_menu():
 {color_text('[3]', 'green')} Disconnect from a Device        {color_text('[17]', 'green')} Mirror Screen
 {color_text('[4]', 'green')} Access Device Shell             {color_text('[18]', 'green')} Execute Custom Command
 {color_text('[5]', 'green')} Install APK                     {color_text('[19]', 'green')} Interactive Shell
-{color_text('[6]', 'green')} Take Screenshot                 {color_text('[20]', 'green')} List Files on Device
-{color_text('[7]', 'green')} Record Screen                   {color_text('[21]', 'green')} Delete File on Device
-{color_text('[8]', 'green')} List Installed Apps             {color_text('[22]', 'green')} Check Battery Health
-{color_text('[9]', 'green')} Reboot Device                   {color_text('[23]', 'green')} Execute Script
-{color_text('[10]', 'green')} Backup Device                  {color_text('[24]', 'green')} Interactive File Browser
-{color_text('[11]', 'green')} Restore Device                 {color_text('[25]', 'green')} Compress/Decompress Files
-{color_text('[12]', 'green')} Push File                      {color_text('[26]', 'green')} View Device Logs (logcat)
-{color_text('[13]', 'green')} Pull File                      {color_text('[0]', 'red')} Exit
-{color_text('[14]', 'green')} Show Device Info
+{color_text('[6]', 'green')} Install Multiple APKs           {color_text('[20]', 'green')} List Files on Device
+{color_text('[7]', 'green')} Take Screenshot                 {color_text('[21]', 'green')} Delete File on Device
+{color_text('[8]', 'green')} Record Screen                   {color_text('[22]', 'green')} Check Battery Health
+{color_text('[9]', 'green')} List Installed Apps             {color_text('[23]', 'green')} Execute Script
+{color_text('[10]', 'green')} Reboot Device                  {color_text('[24]', 'green')} Interactive File Browser
+{color_text('[11]', 'green')} Backup Device                  {color_text('[25]', 'green')} Batch Push/Pull Files
+{color_text('[12]', 'green')} Restore Device                 {color_text('[26]', 'green')} Connect via Wi-Fi ADB
+{color_text('[13]', 'green')} Push File (Secure)             {color_text('[27]', 'green')} Compress/Decompress Files
+{color_text('[14]', 'green')} Pull File (Secure)             {color_text('[28]', 'green')} View Device Logs (logcat)
+                         {color_text('[0]', 'red')} Exit
+
 """
     print(menu)
 
@@ -231,6 +234,24 @@ def install_apk():
     except Exception as e:
         logging.error(f"An error occurred: {e}")
 
+def install_multiple_apks():
+    """Install multiple APKs in batch."""
+    device = select_device()
+    if not device:
+        return
+    apk_paths = input(color_text("Enter paths to APKs (comma-separated): ", 'blue')).split(',')
+    for apk_path in apk_paths:
+        apk_path = apk_path.strip()
+        if not os.path.exists(apk_path):
+            logging.error(f"APK file not found: {apk_path}")
+            continue
+        logging.info(f"Installing APK: {apk_path}")
+        output = adb_command(device, f"install {apk_path}")
+        if "success" in output.lower():
+            logging.info(f"APK installed successfully: {apk_path}")
+        else:
+            logging.error(f"Failed to install APK: {output}")
+
 def take_screenshot():
     """Take screenshot with timestamp-based file naming."""
     device = select_device()
@@ -321,31 +342,58 @@ def restore_device():
     else:
         logging.info(f"Restored from {backup_file}.ab")
 
-def push_file():
-    """Push a file to the device."""
+def push_file_secure():
+    """Push a file to the device securely."""
     device = select_device()
     if not device:
         return
     local_path = input(color_text("Enter local file path: ", 'blue'))
     remote_path = input(color_text("Enter remote file path: ", 'blue'))
-    output = adb_command(device, f"push {local_path} {remote_path}")
-    if "error" in output.lower():
-        logging.error(output)
-    else:
-        logging.info(f"File pushed to {remote_path}")
+    
+    # Encrypt the file before pushing
+    try:
+        with open(local_path, 'rb') as file:
+            file_data = file.read()
+        encrypted_data = cipher_suite.encrypt(file_data)
+        encrypted_file = local_path + ".enc"
+        with open(encrypted_file, 'wb') as file:
+            file.write(encrypted_data)
+        
+        output = adb_command(device, f"push {encrypted_file} {remote_path}")
+        if "error" in output.lower():
+            logging.error(output)
+        else:
+            logging.info(f"File pushed securely to {remote_path}")
+        os.remove(encrypted_file)  # Clean up the encrypted file
+    except Exception as e:
+        logging.error(f"Error during secure file push: {e}")
 
-def pull_file():
-    """Pull a file from the device."""
+def pull_file_secure():
+    """Pull a file from the device securely."""
     device = select_device()
     if not device:
         return
     remote_path = input(color_text("Enter remote file path: ", 'blue'))
     local_path = input(color_text("Enter local file path: ", 'blue'))
-    output = adb_command(device, f"pull {remote_path} {local_path}")
+    
+    # Pull the encrypted file
+    encrypted_file = local_path + ".enc"
+    output = adb_command(device, f"pull {remote_path} {encrypted_file}")
     if "error" in output.lower():
         logging.error(output)
-    else:
-        logging.info(f"File pulled to {local_path}")
+        return
+    
+    # Decrypt the file
+    try:
+        with open(encrypted_file, 'rb') as file:
+            encrypted_data = file.read()
+        decrypted_data = cipher_suite.decrypt(encrypted_data)
+        with open(local_path, 'wb') as file:
+            file.write(decrypted_data)
+        logging.info(f"File pulled securely to {local_path}")
+        os.remove(encrypted_file)  # Clean up the encrypted file
+    except Exception as e:
+        logging.error(f"Error during secure file pull: {e}")
 
 def uninstall_app():
     """Uninstall an app from the device."""
@@ -502,6 +550,72 @@ def interactive_file_browser():
     except ValueError:
         logging.error("Invalid input.")
 
+def batch_push_pull_files():
+    """Batch push or pull multiple files."""
+    device = select_device()
+    if not device:
+        return
+    action = input(color_text("Do you want to (1) Push or (2) Pull files? ", 'blue'))
+    if action not in ['1', '2']:
+        logging.error("Invalid action.")
+        return
+    
+    if action == '1':
+        local_dir = input(color_text("Enter local directory path: ", 'blue'))
+        remote_dir = input(color_text("Enter remote directory path: ", 'blue'))
+        if not os.path.isdir(local_dir):
+            logging.error("Local directory not found.")
+            return
+        
+        files = os.listdir(local_dir)
+        for file in tqdm(files, desc="Pushing files", unit="file"):
+            local_path = os.path.join(local_dir, file)
+            output = adb_command(device, f"push {local_path} {remote_dir}")
+            if "error" in output.lower():
+                logging.error(f"Failed to push {file}: {output}")
+            else:
+                logging.info(f"Pushed {file} to {remote_dir}")
+    
+    elif action == '2':
+        remote_dir = input(color_text("Enter remote directory path: ", 'blue'))
+        local_dir = input(color_text("Enter local directory path: ", 'blue'))
+        if not os.path.isdir(local_dir):
+            logging.error("Local directory not found.")
+            return
+        
+        output = adb_command(device, f"shell ls {remote_dir}")
+        if "error" in output.lower():
+            logging.error(output)
+            return
+        
+        files = output.splitlines()
+        for file in tqdm(files, desc="Pulling files", unit="file"):
+            output = adb_command(device, f"pull {remote_dir}/{file} {local_dir}")
+            if "error" in output.lower():
+                logging.error(f"Failed to pull {file}: {output}")
+            else:
+                logging.info(f"Pulled {file} to {local_dir}")
+
+def connect_wifi_adb():
+    """Connect to a device over Wi-Fi using ADB."""
+    device = select_device()
+    if not device:
+        return
+    ip = input(color_text("Enter device IP address: ", 'blue'))
+    if not validate_ip(ip):
+        logging.error("Invalid IP address.")
+        return
+    output = run_command(f"adb -s {device} tcpip 5555")
+    if "restarting" in output.lower():
+        logging.info("ADB daemon restarted in TCP mode.")
+        output = run_command(f"adb -s {device} connect {ip}")
+        if "connected" in output.lower():
+            logging.info(f"Connected to {ip} over Wi-Fi.")
+        else:
+            logging.error(f"Failed to connect to {ip}.")
+    else:
+        logging.error("Failed to restart ADB in TCP mode.")
+
 def compress_file(file_path, compress_type="zip"):
     """Compress a file using ZIP or GZIP."""
     try:
@@ -544,4 +658,97 @@ def view_device_logs():
     print(color_text("Starting logcat... Press Ctrl+C to stop.", 'blue'))
     try:
         subprocess.run(f"adb -s {device} logcat", shell=True, check=True)
-    exce
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error viewing logs: {e}")
+    except KeyboardInterrupt:
+        logging.info("Logcat stopped.")
+
+def main():
+    """Main function to display menu and handle user input."""
+    try:
+        
+        while True:
+            clear_screen()
+            show_banner()
+            show_menu()
+
+            choice = input(color_text("Select an option: ", 'blue'))
+
+            if choice == '1':
+                show_connected_devices()
+            elif choice == '2':
+                connect_device()
+            elif choice == '3':
+                disconnect_device()
+            elif choice == '4':
+                access_shell()
+            elif choice == '5':
+                install_apk()
+            elif choice == '6':
+                install_multiple_apks()
+            elif choice == '7':
+                take_screenshot()
+            elif choice == '8':
+                record_screen()
+            elif choice == '9':
+                list_installed_apps()
+            elif choice == '10':
+                reboot_device()
+            elif choice == '11':
+                backup_device()
+            elif choice == '12':
+                restore_device()
+            elif choice == '13':
+                push_file_secure()
+            elif choice == '14':
+                pull_file_secure()
+            elif choice == '15':
+                uninstall_app()
+            elif choice == '16':
+                show_device_info()
+            elif choice == '17':
+                mirror_screen()
+            elif choice == '18':
+                execute_custom_command()
+            elif choice == '19':
+                interactive_shell()
+            elif choice == '20':
+                list_files_on_device()
+            elif choice == '21':
+                delete_file_on_device()
+            elif choice == '22':
+                check_battery_health()
+            elif choice == '23':
+                execute_script()
+            elif choice == '24':
+                interactive_file_browser()
+            elif choice == '25':
+                batch_push_pull_files()
+            elif choice == '26':
+                connect_wifi_adb()
+            elif choice == '27':
+                file_path = input(color_text("Enter file path to compress/decompress: ", 'blue'))
+                action = input(color_text("Do you want to (1) Compress or (2) Decompress? ", 'blue'))
+                if action == '1':
+                    compress_type = input(color_text("Enter compression type (zip/gzip): ", 'blue'))
+                    compress_file(file_path, compress_type)
+                elif action == '2':
+                    decompress_file(file_path)
+                else:
+                    logging.error("Invalid action.")
+            elif choice == '28':
+                view_device_logs()
+            elif choice == '0':
+                logging.info("Exiting Ghost Framework. Goodbye!")
+                break
+            else:
+                logging.error("Invalid option. Please try again.")
+
+            input(color_text("Press Enter to continue...", 'blue'))
+    
+    except KeyboardInterrupt:
+        logging.error("Exiting Ghost Framework. Goodbye!")
+        sys.exit(0)  # Exit cleanly
+
+if __name__ == "__main__":
+    main()
