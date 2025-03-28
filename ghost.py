@@ -9,7 +9,7 @@
 # Short-Description: Remote ADB Control Tool for Android Devices
 # Description:       A tool to manage Android devices via ADB for debugging, file management, screen mirroring, and more.
 # Author:            
-# + MIDO <https://github.com/Midohajhouj>
+# + LIONMAD <https://github.com/Midohajhouj>
 # Version:           v2.0
 # License:           MIT License - https://opensource.org/licenses/MIT
 ### END INIT INFO ###
@@ -70,7 +70,7 @@ def show_banner():
       .-.
     .'   `.       {color_text('Ghost Framework v2.0', 'blue')}
    :0 0  :        {color_text('Remote ADB Control Tool', 'yellow')}
-   : o    `.      {color_text ('Coded by MIDO' , 'red')}
+   : o    `.      {color_text ('Coded by LIONMAD' , 'red')}
   :         ``.
  :             `.
 :  :         .   `.
