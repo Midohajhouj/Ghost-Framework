@@ -1,4 +1,4 @@
-# <p align="center"> **👻 Ghost Framework 👻**
+# <p align="center"> **👻Ghost Framework👻**
 
 <p align="center">  
   <img src="https://img.shields.io/badge/Platform-Linux-a80505?style=flat-square">
