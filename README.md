@@ -1,10 +1,10 @@
 # <p align="center"> **👻Ghost Framework👻**
 
 <p align="center">  
-  <img src="https://img.shields.io/badge/Platform-Linux-a80505?style=flat-square">
-  <img src="https://img.shields.io/badge/License-MIT-a80505?style=flat-square">
+  <img src="https://img.shields.io/badge/Platform-Linux-a80505?style=plastic">
+  <img src="https://img.shields.io/badge/License-MIT-a80505?style=plastic">
   <img src="https://img.shields.io/github/v/release/Midohajhouj/Ghost-Framework?label=Version&color=a80505">  
-  <img src="https://img.shields.io/badge/Open%20Source-Yes-darkviolet?style=flat-square&color=a80505">
+  <img src="https://img.shields.io/badge/Open%20Source-Yes-darkviolet?style=plastic&color=a80505">
   <img src="https://img.shields.io/github/languages/top/Midohajhouj/Ghost-Framework?color=a80505">  
 </p>  
 
@@ -55,9 +55,9 @@ ghost
 ## 🗼 Terminal Preview
 ```bash
       .-.
-    .'   `.
-   :0 0  :
-   : o    `.
+    .'   `.           Ghost Framework
+   :0 0  :        Remote ADB Control Tool
+   : o    `.          Coded by LIONMAD 
   :         ``.
  :             `.
 :  :         .   `.
@@ -67,10 +67,7 @@ ghost
        :              `.
         `.              `.     
           `'`'`'`---..,____`.
-          
-Ghost Framework - Remote ADB Control Tool  
-Coded by LIONMAD  
-
+ 
 [1] Show Connected Devices  
 [2] Connect to a Device  
 [3] Install an APK  
