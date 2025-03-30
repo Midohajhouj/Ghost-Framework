@@ -3,9 +3,9 @@
 <p align="center">  
   <img src="https://img.shields.io/badge/Platform-Linux-a80505?style=plastic">
   <img src="https://img.shields.io/badge/License-MIT-a80505?style=plastic">
-  <img src="https://img.shields.io/github/v/release/Midohajhouj/Ghost-Framework?label=Version&color=a80505">  
+  <img src="https://img.shields.io/github/v/release/Midohajhouj/Ghost-Framework?label=Version&style=plastic&color=a80505">  
   <img src="https://img.shields.io/badge/Open%20Source-Yes-darkviolet?style=plastic&color=a80505">
-  <img src="https://img.shields.io/github/languages/top/Midohajhouj/Ghost-Framework?color=a80505">  
+  <img src="https://img.shields.io/github/languages/top/Midohajhouj/Ghost-Framework?style=plasticcolor=a80505">  
 </p>  
 
 **Ghost Framework** is a powerful **Remote ADB Control Tool** designed to streamline interactions with Android devices. It offers advanced capabilities like screen mirroring, real-time log analysis, and batch file operations, all through a convenient command-line interface. Whether you're a developer or security expert, **Ghost Framework** will help you efficiently manage Android devices for testing, development, and troubleshooting.
