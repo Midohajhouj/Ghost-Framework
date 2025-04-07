@@ -10,7 +10,7 @@
 
 **Ghost Framework** is a powerful **Remote ADB Control Tool** designed to streamline interactions with Android devices. It offers advanced capabilities like screen mirroring, real-time log analysis, and batch file operations, all through a convenient command-line interface. Whether you're a developer or security expert, **Ghost Framework** will help you efficiently manage Android devices for testing, development, and troubleshooting.
 
-> 🚨 **Note: The tool's configuration relies on the directory path `/opt/DDoS-Toolkit/`, Ensure proper installation below.**
+> 🚨 **Note: The tool's configuration relies on the directory path `/opt/Ghost-Framework/`, Ensure proper installation below.**
 ---
 
 ## 🎯 Features
